@@ -1,0 +1,141 @@
+package com.sarim.app.screens.setup
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sarim.app.SarimApplication
+import com.sarim.app.R
+import com.sarim.app.screens.common.RecoveryGateDialog
+import com.sarim.app.screens.common.rememberRecoveryGate
+import com.sarim.app.viewmodels.DeviceOwnerViewModel
+import kotlinx.coroutines.delay
+import rikka.shizuku.Shizuku
+
+@Composable
+fun SetupDeviceOwnerPrivileges(viewModel: DeviceOwnerViewModel = viewModel()) {
+    var shizukuInstalled by remember { mutableStateOf(viewModel.isShizukuInstalled()) }
+    var shizukuRunning by remember { mutableStateOf(Shizuku.pingBinder()) }
+    val recoveryGate = rememberRecoveryGate()
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            if (!shizukuInstalled)
+                shizukuInstalled = viewModel.isShizukuInstalled()
+
+            if (shizukuInstalled && !shizukuRunning)
+                shizukuRunning = Shizuku.pingBinder()
+
+            delay(500)
+        }
+    }
+
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        when {
+            viewModel.isDeviceOwner() -> DeviceOwnerRemoveContent(
+                onRemoveAction = {
+                    recoveryGate.run { viewModel.processDeviceOwnerPrivileges(remove = true) }
+                }
+            )
+            !shizukuInstalled -> ShizukuNotInstalledCard(viewModel)
+            !shizukuRunning -> ShizukuNotRunningCard(viewModel)
+            !viewModel.isShizukuPermissionGranted() -> ShizukuNoPermissionCard()
+            else -> DeviceOwnerGrantContent(viewModel)
+        }
+    }
+
+    RecoveryGateDialog(recoveryGate)
+}
+
+@Composable
+private fun ShizukuNotInstalledCard(viewModel: DeviceOwnerViewModel) {
+    SetupStepCard(
+        text = stringResource(R.string.shizuku_not_installed),
+        buttonText = stringResource(R.string.install_shizuku),
+        buttonIcon = Icons.Outlined.InstallMobile,
+        onClick = { viewModel.installShizuku() }
+    )
+}
+
+@Composable
+private fun ShizukuNotRunningCard(viewModel: DeviceOwnerViewModel) {
+    SetupStepCard(
+        text = stringResource(R.string.shizuku_not_running),
+        buttonText = stringResource(R.string.setup_shizuku),
+        buttonIcon = Icons.Outlined.Link,
+        onClick = { viewModel.openShizukuSetupGuide() }
+    )
+}
+
+@Composable
+private fun ShizukuNoPermissionCard() {
+    SetupStepCard(
+        text = stringResource(R.string.no_permission_shizuku),
+        buttonText = stringResource(R.string.ask_shizuku_permission),
+        buttonIcon = Icons.Outlined.QuestionMark,
+        onClick = { Shizuku.requestPermission(911) }
+    )
+}
+
+@Composable
+private fun DeviceOwnerGrantContent(viewModel: DeviceOwnerViewModel) {
+    val accounts = remember { mutableStateListOf<Pair<String, String>>() }
+    LaunchedEffect(Unit) {
+        accounts.addAll(viewModel.getAllAccountsViaShizuku())
+    }
+
+    val extraUsers = remember { viewModel.getExtraUsersInfo() }
+
+    when {
+        accounts.isNotEmpty() -> {
+            AccountWarningDialog(
+                accounts = accounts,
+                onDismiss = { accounts.clear() },
+                getAppName = { type ->
+                    viewModel.getAppNameFromAccountType(
+                        SarimApplication.getInstance(),
+                        type
+                    )
+                }
+            )
+        }
+
+        extraUsers.isNotEmpty() -> {
+            UserWarningDialog(extraUsers = extraUsers)
+        }
+
+        else -> {
+            val currentDeviceOwner = viewModel.getCurrentDeviceOwner()
+            if (currentDeviceOwner != null) {
+                ExistingOwnerDialog(
+                    ownerPackage = currentDeviceOwner.first
+                )
+            } else {
+                SetupStepCard(
+                    text = stringResource(R.string.privileges_description),
+                    buttonText = stringResource(R.string.get_owner_privileges),
+                    buttonIcon = Icons.Outlined.Adb,
+                    onClick = { viewModel.processDeviceOwnerPrivileges() }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeviceOwnerRemoveContent(onRemoveAction: () -> Unit) {
+    SetupStepCard(
+        text = stringResource(R.string.remove_privileges_description),
+        buttonText = stringResource(R.string.remove_privileges),
+        buttonIcon = Icons.Outlined.DeleteForever,
+        onClick = onRemoveAction
+    )
+}

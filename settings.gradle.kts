@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Dechainer"
+rootProject.name = "Sarim"
 include(":app")

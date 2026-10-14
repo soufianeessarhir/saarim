@@ -1,0 +1,96 @@
+package com.sarim.app.screens.common
+
+import android.content.Context
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import com.sarim.app.security.SecurityManager
+import kotlinx.coroutines.delay
+
+/**
+ * Gates a sensitive action behind the recovery-code dialog, unless a recovery session is already
+ * active or no recovery code has been set yet (first run, before [SetupRecovery][com.sarim.app.screens.setup.SetupRecovery]).
+ * Replaces the `pendingAction`/`showRecoveryDialog` pair every settings screen used to hand-roll.
+ */
+class RecoveryGate(private val context: Context) {
+    private var pendingAction by mutableStateOf<(() -> Unit)?>(null)
+    private var pendingCancel: (() -> Unit)? = null
+
+    val isDialogVisible: Boolean get() = pendingAction != null
+
+    /** Whether a recovery session is active — screens use this to enable/disable gated controls. */
+    var isSessionActive by mutableStateOf(SecurityManager.isSessionActive())
+        internal set
+
+    fun updateSessionActive() {
+        val active = SecurityManager.isSessionActive()
+        if (isSessionActive != active) {
+            isSessionActive = active
+        }
+    }
+
+    /** [onCancel] runs if the user dismisses the dialog instead of confirming — for rolling back optimistic UI updates. */
+    fun run(onCancel: (() -> Unit)? = null, action: () -> Unit) {
+        val storedCode = SecurityManager.getRecoveryCode(context)
+        if (storedCode == null || SecurityManager.isSessionActive()) {
+            action()
+        } else {
+            pendingAction = action
+            pendingCancel = onCancel
+        }
+    }
+
+    fun confirm(code: String): Boolean {
+        val storedCode = SecurityManager.getRecoveryCode(context) ?: return true
+        if (!SecurityManager.validateRecoveryCode(code, storedCode)) return false
+        updateSessionActive()
+        pendingAction?.invoke()
+        clear()
+        return true
+    }
+
+    fun dismiss() {
+        pendingCancel?.invoke()
+        clear()
+    }
+
+    private fun clear() {
+        pendingAction = null
+        pendingCancel = null
+    }
+}
+
+@Composable
+fun rememberRecoveryGate(): RecoveryGate {
+    val context = LocalContext.current
+    val gate = remember { RecoveryGate(context) }
+
+    LaunchedEffect(gate, SecurityManager.sessionEndTime) {
+        gate.updateSessionActive()
+        while (gate.isSessionActive) {
+            val remaining = SecurityManager.sessionEndTime - System.currentTimeMillis()
+            if (remaining <= 0) {
+                gate.updateSessionActive()
+                break
+            }
+            delay(remaining.coerceAtMost(1000L))
+            gate.updateSessionActive()
+        }
+    }
+
+    return gate
+}
+
+@Composable
+fun RecoveryGateDialog(gate: RecoveryGate) {
+    if (gate.isDialogVisible) {
+        RecoveryConfirmDialog(
+            onConfirm = { code -> gate.confirm(code) },
+            onDismiss = { gate.dismiss() }
+        )
+    }
+}

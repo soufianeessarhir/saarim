@@ -4,7 +4,7 @@
     android:accessibilityFeedbackType="feedbackSpoken"
     android:accessibilityFlags="flagIncludeNotImportantViews|flagRetrieveInteractiveWindows"
     android:notificationTimeout="100"
-    android:settingsActivity="io.github.warleysr.dechainer.MainActivity"
+    android:settingsActivity="com.sarim.app.MainActivity"
     android:canRetrieveWindowContent="true"
     android:description="@string/accessibility_description"
     android:canTakeScreenshot="true"

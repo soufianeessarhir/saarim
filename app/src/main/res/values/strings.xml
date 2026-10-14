@@ -1,14 +1,14 @@
 <resources>
-    <string name="app_name" translatable="false">Déchaîner</string>
+    <string name="app_name" translatable="false">Sarim / صارم</string>
     <string name="attention">Attention!</string>
     <string name="recovery_wizard_step">Step %1$d of %2$d</string>
     <string name="recovery_wizard_next">Next</string>
     <string name="recovery_wizard_back">Back</string>
     <string name="recovery_wizard_finish">Finish</string>
     <string name="recovery_wizard_intro_title">Your recovery code</string>
-    <string name="recovery_wizard_intro_text">The code will be asked for whenever you change Déchaîner\'s settings. Without it, you could be locked out of the blocked features.</string>
+    <string name="recovery_wizard_intro_text">The code will be asked for whenever you change Sarim\'s settings. Without it, you could be locked out of the blocked features.</string>
     <string name="recovery_wizard_intro_how">How it works</string>
-    <string name="recovery_wizard_intro_step_generate">Déchaîner generates a 16-letter code</string>
+    <string name="recovery_wizard_intro_step_generate">Sarim generates a 16-letter code</string>
     <string name="recovery_wizard_intro_step_write">Write the code down on a piece of paper</string>
     <string name="recovery_wizard_intro_step_confirm">Type it back to make sure it\'s correct</string>
     <string name="recovery_wizard_intro_step_store">Store the paper in a safe place</string>
@@ -29,8 +29,8 @@
     <string name="recovery_wizard_store_tip_old">Throw away the paper with the old code</string>
     <string name="recovery_wizard_stored">I stored the paper in a safe place</string>
     <string name="restrictions">Restrictions</string>
-    <string name="apps" translatable="false">Apps</string>
-    <string name="config" translatable="false">Config</string>
+    <string name="apps">Apps</string>
+    <string name="config">Config</string>
     <string name="not_device_owner">No Device Owner privileges</string>
     <string name="config_device_owner">Get in settings</string>
     <string name="device_owner_state">Owner privileges</string>
@@ -309,7 +309,7 @@
     <string name="impulse_lock_desc">Challenge to access the app, and what the panic button does</string>
     <string name="having_impulses">I\'m having impulses</string>
     <string name="having_impulses_subtitle">Lock everything right now</string>
-    <string name="access_app">Open Déchaîner</string>
+    <string name="access_app">Open Sarim</string>
     <string name="access_app_subtitle">Requires authentication</string>
     <string name="view_usage_limits">View limits</string>
     <string name="view_usage_limits_subtitle">Today\'s usage of apps and groups</string>
@@ -321,13 +321,13 @@
     <string name="usage_limits_remaining">%1$s left</string>
     <string name="usage_limits_reached">Limit reached</string>
     <string name="impulse_timer_active">Impulse block active</string>
-    <string name="impulse_lock_explanation">The panic button locks Dechainer itself for the time set here, and there is no way to undo it before the timer runs out. You can also have it suspend a list of apps for the same period — they come back automatically at the end.</string>
+    <string name="impulse_lock_explanation">The panic button locks Sarim itself for the time set here, and there is no way to undo it before the timer runs out. You can also have it suspend a list of apps for the same period — they come back automatically at the end.</string>
     <string name="impulse_lock_challenge_section">Challenge to access</string>
-    <string name="impulse_lock_challenge_desc">Done after authentication, every time you open Dechainer. Select as many as you want — they run one after the other. With none selected, it unlocks right away</string>
+    <string name="impulse_lock_challenge_desc">Done after authentication, every time you open Sarim. Select as many as you want — they run one after the other. With none selected, it unlocks right away</string>
     <string name="impulse_action_section">What the panic button does</string>
-    <string name="impulse_action_desc">Both options start the timer that locks Dechainer</string>
+    <string name="impulse_action_desc">Both options start the timer that locks Sarim</string>
     <string name="impulse_action_timer_only">Timer only</string>
-    <string name="impulse_action_timer_only_desc">Blocks access to Dechainer until the timer runs out</string>
+    <string name="impulse_action_timer_only_desc">Blocks access to Sarim until the timer runs out</string>
     <string name="impulse_action_suspend_apps">Timer and suspend apps</string>
     <string name="impulse_action_suspend_apps_desc">Also suspends the selected apps for the same period</string>
     <string name="impulse_duration_section">Block duration</string>
@@ -381,7 +381,7 @@
     <string name="reading_count">Texts per challenge</string>
     <string name="reading_count_value">%1$d of %2$d</string>
     <string name="biometric_title">Authentication required</string>
-    <string name="biometric_subtitle">Use your biometric credential to access Dechainer</string>
+    <string name="biometric_subtitle">Use your biometric credential to access Sarim</string>
     <string name="biometric_error">Authentication failed</string>
 
     <string name="nsfw_content_blocked">Content blocked!</string>
@@ -437,7 +437,7 @@
     <string name="color_filter_settings">Color modes</string>
     <string name="color_filter_settings_desc">Grayscale, night light and other screen color filters during the time windows you choose.</string>
     <string name="color_filter_explanation">Applies screen color filters, such as grayscale, night light or extra dim, during the time windows you choose, across the whole phone or only in certain apps, making it less appealing.</string>
-    <string name="color_filter_permission_failed">Could not grant the permission. Make sure Shizuku is running and Déchaîner has access to it.</string>
+    <string name="color_filter_permission_failed">Could not grant the permission. Make sure Shizuku is running and Sarim has access to it.</string>
     <string name="color_filter_enable">Enable color mode windows</string>
     <string name="color_filter_locked">Active now (%1$s), changes require the recovery code</string>
     <string name="color_filter_locked_error">Color modes can\'t be turned off or weakened during an active window</string>

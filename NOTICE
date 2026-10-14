@@ -1,0 +1,24 @@
+Sarim / صارم
+Copyright 2026 the Sarim contributors
+
+This product is a derivative work of Déchaîner
+(https://github.com/warleysr/dechainer), Copyright the Déchaîner authors,
+licensed under the Apache License, Version 2.0.
+
+Portions of this software are derived from that work, and modified files have
+been changed from their original form as part of the Sarim fork. The original
+Apache License 2.0 text is retained verbatim in the LICENSE file and no
+additional terms are imposed on it.
+
+Bundled assets and their sources:
+
+- apps/models/nsfw_model.tflite — on-device content classifier, bundled from
+  the upstream project. No network access at runtime.
+- Bible reading passages — King James Version (public domain, English) and
+  João Ferreira de Almeida (public domain, Portuguese).
+- Quran reading passages — Saheeh International (English) and Samir El-Hayek
+  (Portuguese) translations, plus the Arabic Mus'haf text sourced from
+  Quran.com (QuranEnc/QUL licensing). See app/src/main/java/com/sarim/app/data/
+  ReadingPassages.kt for the per-source attribution.
+- Philosophical quotations — public-domain English translations, listed
+  individually in ReadingPassages.kt.

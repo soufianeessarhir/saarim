@@ -1,19 +1,19 @@
 <div align="center">
-<img src="docs/logo.png" width="128" alt="Déchaîner logo">
+<img src="docs/logo.png" width="128" alt="Sarim logo">
 
-# Déchaîner
+# Sarim · صارم
 
 **A hard-to-bypass Android barrier against pornography and digital addiction.**
 
 Device Owner restrictions, an Accessibility Service and an on-device ML model working together,<br>
 built so that your future self can't simply turn it off.
 
-[![Release](https://img.shields.io/github/v/release/warleysr/dechainer?style=flat-square&color=2e6b3f)](https://github.com/warleysr/dechainer/releases/latest)
 [![Android](https://img.shields.io/badge/Android-11%2B-3ddc84?style=flat-square&logo=android&logoColor=white)](#installation)
 ![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7f52ff?style=flat-square&logo=kotlin&logoColor=white)
-[![License](https://img.shields.io/github/license/warleysr/dechainer?style=flat-square&color=b8860b)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-b8860b?style=flat-square)](LICENSE)
+![Languages](https://img.shields.io/badge/Languages-English%20%C2%B7%20%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9%20%C2%B7%20Portugu%C3%AAs-2e6b3f?style=flat-square)
 
-[**Download the latest APK**](https://github.com/warleysr/dechainer/releases/latest) · [How it works](#how-it-works) · [Features](#features) · [Installation](#installation) · [Recovery](#recovery-and-safety)
+[How it works](#how-it-works) · [Features](#features) · [Installation](#installation) · [Recovery](#recovery-and-safety) · [Privacy](#privacy)
 
 </div>
 
@@ -43,11 +43,11 @@ built so that your future self can't simply turn it off.
 > [!CAUTION]
 > This software implements deep system-level modifications and is designed to be difficult to bypass. Proceed only if you fully understand the implications of Device Owner privileges. Read [Recovery and Safety](#recovery-and-safety) before installing.
 
-## Why Déchaîner?
+## Why Sarim?
 
-**Déchaîner** (pronounced [/de.ʃɛ.ne/](https://en.wiktionary.org/wiki/d%C3%A9cha%C3%AEner)) is a French verb meaning *to unleash, unchain, let loose*. Most blockers are one settings screen away from being disabled in a weak moment. Déchaîner is built the other way around:
+**Sarim** (Arabic: **صارم**, pronounced [/sˤaː.rim/](https://en.wiktionary.org/wiki/%D8%B5%D8%A7%D8%B1%D9%85)) names *the one who abstains* — and also, in the same root, *the one who is hard to bypass*. Both readings are the point. Most blockers are one settings screen away from being disabled in a weak moment. Sarim is built the other way around:
 
-| | Typical blocker | Déchaîner |
+| | Typical blocker | Sarim |
 |---|---|---|
 | Can be uninstalled on impulse | Yes | No, Device Owner prevents it |
 | VPN / private DNS can be changed to get around it | Usually | Blocked at the OS level |
@@ -60,13 +60,13 @@ built so that your future self can't simply turn it off.
 
 A regular Android app lives in a sandbox. It can't see what other apps show, can't stop you from changing system settings, and can be uninstalled with two taps. That's why most blockers are so easy to get around.
 
-Déchaîner is granted two special powers that ordinary apps never get:
+Sarim is granted two special powers that ordinary apps never get:
 
 <table>
   <tr>
     <td width="50%" valign="top">
       <h3>1. Device Owner</h3>
-      <p>The same level of control companies use to manage work phones. It lets Déchaîner:</p>
+      <p>The same level of control companies use to manage work phones. It lets Sarim:</p>
       <ul>
         <li>lock system settings such as VPN, private DNS, factory reset and app installs</li>
         <li>force SafeSearch and site blocklists on browsers</li>
@@ -75,7 +75,7 @@ Déchaîner is granted two special powers that ordinary apps never get:
     </td>
     <td width="50%" valign="top">
       <h3>2. Accessibility Service</h3>
-      <p>The same access screen readers use to help blind users. It lets Déchaîner:</p>
+      <p>The same access screen readers use to help blind users. It lets Sarim:</p>
       <ul>
         <li>read text on screen and as it's being typed</li>
         <li>look at images and video on screen, using an on-device ML model</li>
@@ -94,7 +94,7 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 | 🛡️ **Device Owner restrictions** | Block VPNs, private DNS changes, factory reset, app installs, USB debugging and dozens more `UserManager` policies. |
 | 🧠 **On-device visual blocking** | A local TensorFlow Lite model detects explicit images and video on screen and closes the app. Nothing is uploaded. |
 | ⌨️ **Word blocking** | Erases forbidden words as they're typed, or closes the app when they appear anywhere on screen. |
-| 🚨 **Impulse lock** | A panic button on the lock screen that locks Déchaîner (and chosen apps) for 15 minutes to 6 hours, resistant to clock changes. |
+| 🚨 **Impulse lock** | A panic button on the lock screen that locks Sarim (and chosen apps) for 15 minutes to 6 hours, resistant to clock changes. |
 | 🍅 **Focus mode** | Pomodoro sessions that suspend distracting apps during each focus period and give them back on breaks. |
 | ⏱️ **Time limits and windows** | Daily limits per app or group, per weekday, allowed time windows, reopening cooldowns and usage warnings. |
 | 🌙 **Color modes** | Grayscale, night light, extra dim or inversion during scheduled windows, which can't be switched off while active. |
@@ -159,9 +159,9 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 <details>
 <summary><b>Impulse lock and access challenges</b></summary>
 
-- A panic button on the lock screen, reachable even before authenticating: starts a 15-minute to 6-hour lock on Déchaîner itself, optionally also suspending a user-chosen list of apps for the same duration.
+- A panic button on the lock screen, reachable even before authenticating: starts a 15-minute to 6-hour lock on Sarim itself, optionally also suspending a user-chosen list of apps for the same duration.
 - The timer resists system clock changes and survives the app or its service being restarted.
-- Opening Déchaîner requires biometric or device authentication, plus optional extra challenges. Any combination can be selected, and they run one after the other:
+- Opening Sarim requires biometric or device authentication, plus optional extra challenges. Any combination can be selected, and they run one after the other:
   - **Math:** a 5-problem arithmetic quiz.
   - **Words:** typing 32 words correctly in a row.
   - **Tetris:** playing for a configurable number of minutes (time only counts while actually playing). Gravity speeds up as levels rise, with a lock delay, line clear animations and sound effects that can be muted. When the time is up the game keeps going until you tap "Continue", so the current piece or line can be finished.
@@ -207,13 +207,13 @@ Becoming Device Owner requires a bridge between user space and system space. Fol
 
 1. **Install [Shizuku](https://shizuku.rikka.app/).** It's used to run the required ADB commands on the device itself.
 2. **Enable Wireless Debugging** in Developer Options and pair it with Shizuku.
-3. **Download and open Déchaîner** from the [latest release](https://github.com/warleysr/dechainer/releases/latest), and grant it access to Shizuku.
+3. **Install and open Sarim**, then grant it access to Shizuku.
 4. **Become Device Owner.** In the Config tab, follow the prompts to register the app as Device Owner. This runs `dpm set-device-owner` through Shizuku.
 5. **Enable the Accessibility Service.** Still in the Config tab, turn on *Advanced blocking* (also applied through Shizuku). It's required for word blocking, visual blocking, activity blocking, torrent blocking, time limits and color modes. App installation is blocked while this service is off, so an unrestricted browser can't be installed in the meantime.
 
 ## Recovery and Safety
 
-During setup, Déchaîner generates a unique **16-character recovery code**. It's the only ordinary way to disable restrictions or uninstall the app without a full device wipe (if a wipe is even permitted by your active settings).
+During setup, Sarim generates a unique **16-character recovery code**. It's the only ordinary way to disable restrictions or uninstall the app without a full device wipe (if a wipe is even permitted by your active settings).
 
 A step-by-step wizard sets it up, both on first setup and whenever you generate a new code: write it down on paper, type it back from the paper to confirm every letter, then choose a safe place to store it.
 
@@ -227,10 +227,32 @@ A step-by-step wizard sets it up, both on first setup and whenever you generate 
 The Config tab offers a **forced removal** option as a deliberate last resort. It starts a 48-hour timer, and once it expires, Device Owner privileges can be removed without the recovery code. The delay exists so it can't be used as a quick bypass, and it can be cancelled at any time before it completes.
 
 > [!WARNING]
-> **Déchaîner is designed to be uncompromising.** Activating full system restrictions and then losing your recovery code may leave you permanently unable to change system settings or restore the device until the 48-hour forced removal completes. This self-lockout is intentional: it's what stops your future self from relapsing. Besides the recovery code and forced removal, there is no other backdoor.
+> **Sarim is designed to be uncompromising.** Activating full system restrictions and then losing your recovery code may leave you permanently unable to change system settings or restore the device until the 48-hour forced removal completes. This self-lockout is intentional: it's what stops your future self from relapsing. Besides the recovery code and forced removal, there is no other backdoor.
+
+## Privacy
+
+**Nothing leaves the device.** Sarim has no ads, no ad SDKs, no analytics, no crash-reporting SDK, and no telemetry. It makes no network calls of its own.
+
+- The visual-blocking model (`nsfw_model.tflite`) runs entirely on-device. Screens are never captured to disk and never uploaded.
+- Word blocking, time limits, focus mode, color modes and the recovery code all run and stay on the phone.
+- The only outside interaction is with [Shizuku](https://shizuku.rikka.app/), which is used locally to run the Device Owner setup commands. Shizuku runs on your device; it is not a server.
+- No account is required. No data is collected, sold or shared.
+
+The full text is in the [privacy policy](https://sarim.app/privacy).
+
+## Fork changes
+
+Sarim is a fork of [Déchaîner](https://github.com/warleysr/dechainer) (Apache 2.0). Changes made in this fork:
+
+- Renamed the app to Sarim / صارم, with the application ID and namespace moved to `com.sarim.app`.
+- Added Arabic, including full `values-ar` translations, RTL layout support and an Arabic Quran (Mus'haf) source for the reading challenge.
+- Added Arabic root/stem matching to the word blocker, since single-word matching does not work well for a morphological language.
+- Added unit test coverage for the security manager, and made Device Owner setup wait for the authoritative policy broadcast instead of guessing.
 
 ## License
 
-Released under the [Apache License 2.0](LICENSE).
+Released under the [Apache License 2.0](LICENSE). The full license text is kept verbatim; no additional terms are imposed.
+
+This project is a fork. It is derived from [Déchaîner](https://github.com/warleysr/dechainer), Copyright the Déchaîner authors, licensed under the Apache License 2.0. The original copyright and attribution notices are retained — see [NOTICE](NOTICE).
 
 **Disclaimer:** this software is provided "as is", without warranty of any kind. The developers are not liable for any data loss, system instability, or permanent device lockouts resulting from the use of Device Owner privileges.

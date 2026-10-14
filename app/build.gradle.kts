@@ -13,13 +13,13 @@ val localProperties = Properties().apply {
 val releaseStoreFile = localProperties.getProperty("dechainer.storeFile")
 
 android {
-    namespace = "io.github.warleysr.dechainer"
+    namespace = "com.sarim.app"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "io.github.warleysr.dechainer"
+        applicationId = "com.sarim.app"
         minSdk = 30
         targetSdk = 36
         versionCode = 18
@@ -34,7 +34,7 @@ android {
 
     androidResources {
         noCompress.add("tflite")
-        localeFilters += listOf("en", "pt")
+        localeFilters += listOf("en", "pt", "ar")
     }
 
     packaging {

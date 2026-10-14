@@ -1,14 +1,14 @@
 <resources>
-    <string name="app_name" translatable="false">Déchaîner</string>
+    <string name="app_name" translatable="false">Sarim / صارم</string>
     <string name="attention">Atenção!</string>
     <string name="recovery_wizard_step">Passo %1$d de %2$d</string>
     <string name="recovery_wizard_next">Próximo</string>
     <string name="recovery_wizard_back">Voltar</string>
     <string name="recovery_wizard_finish">Concluir</string>
     <string name="recovery_wizard_intro_title">Seu código de recuperação</string>
-    <string name="recovery_wizard_intro_text">O código será pedido sempre que você for alterar as configurações do Déchaîner. Sem ele, você pode ficar trancado para fora das funções bloqueadas.</string>
+    <string name="recovery_wizard_intro_text">O código será pedido sempre que você for alterar as configurações do Sarim. Sem ele, você pode ficar trancado para fora das funções bloqueadas.</string>
     <string name="recovery_wizard_intro_how">Como funciona</string>
-    <string name="recovery_wizard_intro_step_generate">O Déchaîner gera um código de 16 letras</string>
+    <string name="recovery_wizard_intro_step_generate">O Sarim gera um código de 16 letras</string>
     <string name="recovery_wizard_intro_step_write">Escreva o código em um papel</string>
     <string name="recovery_wizard_intro_step_confirm">Digite-o de volta para conferir</string>
     <string name="recovery_wizard_intro_step_store">Guarde o papel em um local seguro</string>
@@ -309,7 +309,7 @@
     <string name="impulse_lock_desc">Desafio para acessar o app e o que o botão de pânico faz</string>
     <string name="having_impulses">Estou tendo impulsos</string>
     <string name="having_impulses_subtitle">Trancar tudo agora</string>
-    <string name="access_app">Acessar Déchaîner</string>
+    <string name="access_app">Acessar Sarim</string>
     <string name="access_app_subtitle">Requer autenticação</string>
     <string name="view_usage_limits">Ver limites</string>
     <string name="view_usage_limits_subtitle">Uso de hoje dos apps e grupos</string>
@@ -321,13 +321,13 @@
     <string name="usage_limits_remaining">Restam %1$s</string>
     <string name="usage_limits_reached">Limite atingido</string>
     <string name="impulse_timer_active">Bloqueio de impulsos ativo</string>
-    <string name="impulse_lock_explanation">O botão de pânico tranca o próprio Dechainer pelo tempo definido aqui, e não há como desfazer antes do timer acabar. Você também pode fazer com que ele suspenda uma lista de apps pelo mesmo período — eles voltam automaticamente no final.</string>
+    <string name="impulse_lock_explanation">O botão de pânico tranca o próprio Sarim pelo tempo definido aqui, e não há como desfazer antes do timer acabar. Você também pode fazer com que ele suspenda uma lista de apps pelo mesmo período — eles voltam automaticamente no final.</string>
     <string name="impulse_lock_challenge_section">Desafio para acessar</string>
-    <string name="impulse_lock_challenge_desc">Feitos após a autenticação, toda vez que você abre o Dechainer. Selecione quantos quiser — eles são feitos um após o outro. Sem nenhum selecionado, desbloqueia imediatamente</string>
+    <string name="impulse_lock_challenge_desc">Feitos após a autenticação, toda vez que você abre o Sarim. Selecione quantos quiser — eles são feitos um após o outro. Sem nenhum selecionado, desbloqueia imediatamente</string>
     <string name="impulse_action_section">O que o botão de pânico faz</string>
-    <string name="impulse_action_desc">As duas opções iniciam o timer que tranca o Dechainer</string>
+    <string name="impulse_action_desc">As duas opções iniciam o timer que tranca o Sarim</string>
     <string name="impulse_action_timer_only">Somente o timer</string>
-    <string name="impulse_action_timer_only_desc">Bloqueia o acesso ao Dechainer até o timer acabar</string>
+    <string name="impulse_action_timer_only_desc">Bloqueia o acesso ao Sarim até o timer acabar</string>
     <string name="impulse_action_suspend_apps">Timer e suspender apps</string>
     <string name="impulse_action_suspend_apps_desc">Também suspende os apps selecionados pelo mesmo período</string>
     <string name="impulse_duration_section">Duração do bloqueio</string>
@@ -381,7 +381,7 @@
     <string name="reading_count">Textos por desafio</string>
     <string name="reading_count_value">%1$d de %2$d</string>
     <string name="biometric_title">Autenticação necessária</string>
-    <string name="biometric_subtitle">Use sua digital para acessar o Dechainer</string>
+    <string name="biometric_subtitle">Use sua digital para acessar o Sarim</string>
     <string name="biometric_error">Falha na autenticação</string>
 
     <string name="nsfw_content_blocked">Conteúdo bloqueado!</string>
@@ -437,7 +437,7 @@
     <string name="color_filter_settings">Modos de cor</string>
     <string name="color_filter_settings_desc">Escala de cinza, luz noturna e outros filtros de cor da tela durante as janelas de horário que você escolher.</string>
     <string name="color_filter_explanation">Aplica filtros de cor na tela, como escala de cinza, luz noturna ou escurecimento extra, durante as janelas de horário que você escolher, no celular inteiro ou só em certos apps, tornando-o menos atraente.</string>
-    <string name="color_filter_permission_failed">Não foi possível conceder a permissão. Verifique se o Shizuku está rodando e se o Déchaîner tem acesso a ele.</string>
+    <string name="color_filter_permission_failed">Não foi possível conceder a permissão. Verifique se o Shizuku está rodando e se o Sarim tem acesso a ele.</string>
     <string name="color_filter_enable">Ativar janelas de modos de cor</string>
     <string name="color_filter_locked">Ativo agora (%1$s), alterações exigem o código de recuperação</string>
     <string name="color_filter_locked_error">Os modos de cor não podem ser desativados nem enfraquecidos durante uma janela ativa</string>
