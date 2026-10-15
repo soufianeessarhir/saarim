@@ -467,7 +467,7 @@
     <string name="color_filter_window_active">%1$s (نشط الآن)</string>
     <string name="color_filter_edit_windows">تعديل</string>
 
-    <string name="focus_mode" translatable="false">وضع التركيز</string>
+    <string name="focus_mode">وضع التركيز</string>
     <string name="focus_mode_desc">مؤقت بومودورو يُعلّق التطبيقات المُشتتة أثناء التركيز</string>
     <string name="focus_mode_explanation">التطبيقات المُختارة تُعلّق أثناء التركيز وتعود أثناء الاستراحات. بعد بضع دورات تركيز، تحصل على استراحة طويلة.</string>
     <string name="focus_status_idle">لا جلسة تركيز قيد التنفيذ</string>
@@ -506,7 +506,7 @@
     <string name="focus_vibration_desc">يهتز عند انتهاء فترة تركيز أو استراحة</string>
     <string name="focus_apps_section">التطبيقات المطلوب تعليقها خلال التركيز</string>
     <string name="focus_requires_device_owner">اختيار التطبيقات يتطلب صلاحيات مالك الجهاز — بدونها يعمل وضع التركيز فقط كمؤقت</string>
-    <string name="focus_channel_timer">مؤّ택트 وضع التركيز</string>
+    <string name="focus_channel_timer">مؤقت وضع التركيز</string>
     <string name="save">حفظ</string>
 
     <string name="focus_restrictions_section">القيود النظامية خلال التركيز</string>

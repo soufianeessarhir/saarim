@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.util.Log
+import androidx.core.content.edit
 import androidx.core.net.toUri
 import com.sarim.app.SarimApplication
 import com.sarim.app.utils.ShizukuRunner
@@ -59,9 +60,7 @@ object DeviceOwnerRepository {
     }
 
     private val adminPrefs by lazy {
-        ApplicationProvider.getApplicationContext<Context>().getSharedPreferences(
-            PREFS_ADMIN_RESULT, Context.MODE_PRIVATE
-        )
+        context.getSharedPreferences(PREFS_ADMIN_RESULT, Context.MODE_PRIVATE)
     }
 
     /**
