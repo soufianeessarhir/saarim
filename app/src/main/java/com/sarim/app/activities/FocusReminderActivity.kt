@@ -3,7 +3,6 @@ package com.sarim.app.activities
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,7 +37,7 @@ import com.sarim.app.data.FocusMode
 import com.sarim.app.data.FocusScheduleManager
 import com.sarim.app.notifications.FocusReminderNotifier
 
-class FocusReminderActivity : ComponentActivity() {
+class FocusReminderActivity : LocalizedActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

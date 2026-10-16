@@ -14,3 +14,4 @@
 .cxx
 local.properties
 .kotlin
+RUN_AND_TEST.md

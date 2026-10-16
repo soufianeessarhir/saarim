@@ -634,7 +634,10 @@ fun LanguageSelectionDialog(
     )
 
     var selectedOption by remember {
-        mutableStateOf(options.firstOrNull { currentLocale.startsWith(it.first) }?.first ?: "en")
+        mutableStateOf(
+            options.firstOrNull { currentLocale.startsWith(it.first) }?.first
+                ?: LocaleUtils.DEFAULT_LANGUAGE
+        )
     }
 
     AlertDialog(

@@ -10,6 +10,7 @@ import android.provider.Settings
 import com.sarim.app.data.AppRepository
 import com.sarim.app.data.ColorFilterController
 import com.sarim.app.data.FocusMode
+import com.sarim.app.utils.LocaleUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -39,6 +40,9 @@ class SarimApplication : Application() {
         super.onCreate()
 
         instance = this
+
+        // Arabic unless the user picks another language in Config.
+        LocaleUtils.applyDefaultLocale(this)
 
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())

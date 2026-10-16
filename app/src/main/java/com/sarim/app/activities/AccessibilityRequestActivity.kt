@@ -3,7 +3,6 @@ package com.sarim.app.activities
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -17,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.sarim.app.SarimAccessibilityService
 import com.sarim.app.R
 
-class AccessibilityRequestActivity : ComponentActivity() {
+class AccessibilityRequestActivity : LocalizedActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -20,8 +19,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.AppBlocking
 import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.LockClock
-import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
@@ -30,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -45,7 +45,7 @@ import com.sarim.app.viewmodels.DeviceOwnerViewModel
 import com.sarim.app.viewmodels.NavigationViewModel
 import kotlinx.coroutines.delay
 
-class MainActivity : ComponentActivity() {
+class MainActivity : LocalizedActivity() {
 
     private val authenticated = mutableStateOf(false)
 
@@ -116,19 +116,37 @@ class MainActivity : ComponentActivity() {
                                     val remaining = SecurityManager.sessionEndTime - currentTime
                                     val minutes = (remaining / 1000) / 60
                                     val seconds = (remaining / 1000) % 60
-                                    
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Outlined.LockClock, null, modifier = Modifier.padding(end = 4.dp))
-                                        Text(
-                                            text = "%02d:%02d".format(minutes, seconds),
-                                            style = MaterialTheme.typography.labelLarge
-                                        )
-                                        IconButton(onClick = { SecurityManager.renewSession() }) {
-                                            Icon(Icons.Outlined.Refresh, stringResource(R.string.renew_session))
+
+                                    // Session countdown as a compact pill, then end-of-session button.
+                                    Surface(
+                                        shape = MaterialTheme.shapes.extraLarge,
+                                        color = MaterialTheme.colorScheme.primaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.padding(end = 4.dp)
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.padding(
+                                                horizontal = 10.dp, vertical = 4.dp
+                                            )
+                                        ) {
+                                            Icon(
+                                                Icons.Outlined.LockClock,
+                                                contentDescription = null,
+                                                modifier = Modifier.padding(end = 6.dp)
+                                            )
+                                            Text(
+                                                text = "%02d:%02d".format(minutes, seconds),
+                                                style = MaterialTheme.typography.labelLarge,
+                                                fontFamily = FontFamily.Monospace
+                                            )
                                         }
-                                        IconButton(onClick = { SecurityManager.endSession() }) {
-                                            Icon(Icons.Outlined.Logout, null)
-                                        }
+                                    }
+                                    IconButton(onClick = { SecurityManager.renewSession() }) {
+                                        Icon(Icons.Outlined.Refresh, stringResource(R.string.renew_session))
+                                    }
+                                    IconButton(onClick = { SecurityManager.endSession() }) {
+                                        Icon(Icons.AutoMirrored.Outlined.Logout, null)
                                     }
                                 }
                             }

@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.os.Handler
@@ -24,7 +23,6 @@ import com.sarim.app.activities.MainActivity
 import com.sarim.app.data.FocusMode
 import com.sarim.app.utils.LocaleUtils
 import timber.log.Timber
-import java.util.Locale
 
 object FocusNotifier {
     private const val CHANNEL_TIMER = "focus_timer"
@@ -36,15 +34,9 @@ object FocusNotifier {
 
     private val vibrationPattern = longArrayOf(0, 300, 200, 300)
 
-    private fun localized(context: Context): Context {
-        val locale = Locale.forLanguageTag(LocaleUtils.getLocale(context))
-        val config = Configuration(context.resources.configuration).apply { setLocale(locale) }
-        return context.createConfigurationContext(config)
-    }
-
     private fun ensureChannels(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
-        val localizedContext = localized(context)
+        val localizedContext = LocaleUtils.localizedContext(context)
         if (manager.getNotificationChannel(CHANNEL_TIMER) == null) {
             manager.createNotificationChannel(
                 NotificationChannel(
@@ -97,7 +89,7 @@ object FocusNotifier {
         ensureChannels(context)
         return NotificationCompat.Builder(context, CHANNEL_TIMER)
             .setSmallIcon(R.drawable.ic_notification_focus)
-            .setContentTitle(localized(context).getString(R.string.focus_mode))
+            .setContentTitle(LocaleUtils.localizedContext(context).getString(R.string.focus_mode))
             .setSilent(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
@@ -120,7 +112,7 @@ object FocusNotifier {
     fun buildStatus(context: Context): Notification? {
         val status = FocusMode.getStatus(context) ?: return null
         ensureChannels(context)
-        val localizedContext = localized(context)
+        val localizedContext = LocaleUtils.localizedContext(context)
 
         val title = phaseTitle(localizedContext, status).let {
             if (status.paused) localizedContext.getString(R.string.focus_phase_paused, it) else it

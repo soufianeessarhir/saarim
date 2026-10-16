@@ -245,7 +245,7 @@ The full text is in the [privacy policy](https://sarim.app/privacy).
 Sarim is a fork of [Déchaîner](https://github.com/warleysr/dechainer) (Apache 2.0). Changes made in this fork:
 
 - Renamed the app to Sarim / صارم, with the application ID and namespace moved to `com.sarim.app`.
-- Added Arabic, including full `values-ar` translations, RTL layout support and an Arabic Quran (Mus'haf) source for the reading challenge.
+- Added Arabic as the app's default language — full `values-ar` translations, RTL layout support, and an Arabic Quran (Mus'haf) source for the reading challenge. Config → Language switches to English or Portuguese.
 - Added Arabic root/stem matching to the word blocker, since single-word matching does not work well for a morphological language.
 - Added unit test coverage for the security manager, and made Device Owner setup wait for the authoritative policy broadcast instead of guessing.
 

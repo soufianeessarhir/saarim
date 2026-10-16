@@ -5,7 +5,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
@@ -17,7 +16,6 @@ import com.sarim.app.models.UsageAlertStage
 import com.sarim.app.models.UsageAlertType
 import com.sarim.app.utils.LocaleUtils
 import timber.log.Timber
-import java.util.Locale
 import kotlin.math.roundToInt
 
 object UsageWarningNotifier {
@@ -37,18 +35,12 @@ object UsageWarningNotifier {
         UsageAlertType.VIBRATE -> "usage_warning_vibrate_${stage.vibrationCount.coerceAtLeast(1)}"
     }
 
-    private fun localized(context: Context): Context {
-        val locale = Locale.forLanguageTag(LocaleUtils.getLocale(context))
-        val config = Configuration(context.resources.configuration).apply { setLocale(locale) }
-        return context.createConfigurationContext(config)
-    }
-
     private fun ensureChannel(context: Context, stage: UsageAlertStage) {
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         val channelId = channelIdFor(stage)
         if (manager.getNotificationChannel(channelId) != null) return
 
-        val localizedContext = localized(context)
+        val localizedContext = LocaleUtils.localizedContext(context)
         val channel = when (stage.type) {
             UsageAlertType.SILENT -> NotificationChannel(
                 channelId, localizedContext.getString(R.string.usage_warning_channel_silent), NotificationManager.IMPORTANCE_LOW
@@ -132,7 +124,7 @@ object UsageWarningNotifier {
         }
 
         ensureChannel(context, stage)
-        val localizedContext = localized(context)
+        val localizedContext = LocaleUtils.localizedContext(context)
 
         val clampedRemaining = remainingMillis.coerceIn(0L, thresholdMillis)
         val fraction = if (thresholdMillis > 0) clampedRemaining.toFloat() / thresholdMillis else 0f
