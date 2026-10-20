@@ -444,6 +444,25 @@
     <string name="color_filter_status_on">Filters are on right now</string>
     <string name="color_filter_status_off">Filters are off right now</string>
     <string name="color_filter_modes_section">Modes</string>
+
+    <string name="how_it_works">How it works</string>
+    <string name="how_it_works_desc">A quick tour of Sarim and the features behind the screen.</string>
+
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="got_it">Got it</string>
+    <string name="onboarding_slide_0_title">What Sarim is</string>
+    <string name="onboarding_slide_0_body">A self-control tool. It blocks apps, words, and content on your own phone. The recovery code is the only key.</string>
+    <string name="onboarding_slide_1_title">Your session</string>
+    <string name="onboarding_slide_1_body">Enter the recovery code to unlock a 10-minute session. No session, no changes.</string>
+    <string name="onboarding_slide_2_title">Restrictions &amp; apps</string>
+    <string name="onboarding_slide_2_body">Set daily limits per app, choose time windows, block words, and filter visual content.</string>
+    <string name="onboarding_slide_3_title">Focus &amp; impulse</string>
+    <string name="onboarding_slide_3_body">A Pomodoro focus timer with alarms, and a panic button that suspends chosen apps for a duration that survives reboots.</string>
+    <string name="onboarding_slide_4_title">Device owner setup</string>
+    <string name="onboarding_slide_4_body">Optional owner privileges, granted through Shizuku, unlock app suspension, install blocking, and color modes.</string>
+    <string name="onboarding_slide_4_cta">Set up now</string>
+    <string name="onboarding_slide_4_note">Recommended but optional.</string>
     <string name="color_filter_modes_desc">Each selected mode turns on during its own time windows and where you choose.</string>
     <string name="color_filter_no_modes">Select at least one mode.</string>
     <string name="color_filter_mode_grayscale">Grayscale</string>

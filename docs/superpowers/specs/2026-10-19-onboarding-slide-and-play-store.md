@@ -92,7 +92,7 @@ The app is technically publishable. The hard parts are policy, not code.
 
 | # | Blocker | Why it blocks | Resolution |
 |---|---|---|---|
-| 1 | **Device Owner via Shizuku** | Play's Device Admin / Device Owner policy requires the app to be the legitimate owner of a managed device and to declare it. Shizuku-driven `dpm set-device-owner` on a personal device is allowed for the device's own user, but Play reviewers flag apps that *require* device owner to function. | Make device owner **optional and clearly labeled** (it already is — "Advanced blocking" is a separate toggle). The core features (session, per-app limits, blocked words, focus, impulse lock) must work without owner. Document in the store listing that owner unlocks: app suspension (`dpm.setPackagesSuspended`), install blocking (`DISALLOW_INSTALL_APPS`), and `WRITE_SECURE_SETTINGS` for color modes. |
+| 1 | **Device Owner via Shizuku** | **CORRECTED by sourced research (see §8).** There is **no** Play carve-out for a consumer self-control app using device owner. The only device-owner carve-outs in Play text are "Enterprise device management apps using device owner mode" (User Data policy) and parental-control apps "authorized by a parent or guardian" (Accessibility API policy). Sarim is neither. Additionally, "Don't use device admin features to block uninstallation" is unconditional, and consent does not cure it. **Recommendation upgraded: remove the device-owner / Shizuku flow from the Play-distributed APK entirely**, not just make it optional. |
 | 2 | **Accessibility service** | Play requires a prominent disclosure + a video showing the service in use, and the service must be essential to core functionality. | Sarim's a11y service is essential (word/activity blocking). Write the disclosure text, record a short demo video, submit both in the Play Console. |
 | 3 | **`QUERY_ALL_PACKAGES`** | Restricted permission; Play requires a declaration form justifying it. | Justify: per-app usage limits and app grouping require enumerating installed apps. No alternative (the app literally cannot do its job without it). |
 | 4 | **`PACKAGE_USAGE_STATS`** | Special permission, granted by user in Settings. | Already handled via Settings deep-link. Add a store-listing note. |
@@ -126,6 +126,58 @@ Keep the current `debug`/`release` builds as the sideload (non-Play) variant so 
 - Do not ship the self-update path to Play (blocker 6).
 - Do not rename the package after first publish.
 - Do not skip the accessibility disclosure video — it is the #1 rejection reason for a11y-based apps.
+
+## 8. Sourced Play Store policy findings (2026-10-20)
+
+The Play Store study in §4 was originally written from my own reading. Three research agents then sourced the actual policy text. Their findings materially change the recommendation, so they are recorded here rather than silently overwriting §4.
+
+### 8.1 Device admin / device owner — sourced findings
+
+Sources retrieved: Play Console Help answers 9888380 (Malware / Elevated Privilege Abuse), 16558241 (User Data), 18258653, 9214102 (Permissions Declaration), 10964491 (Accessibility API), 9899234, 10467955, 13609005, 13386702; the consolidated Developer Program Policy; all 56 archived policy PDFs (2016 → Aug 26 2026); Android Work device-admin deprecation page; and Stack Overflow enforcement threads 31484954, 73551970, 31961429.
+
+**Rules that apply verbatim:**
+
+- "Apps that abuse features to prevent them from being uninstalled or stopped." — Malware / Elevated Privilege Abuse.
+- "Don't use device admin features to block uninstallation." — same.
+- "Provide a clear and easy way for users to remove your app." — same.
+- "Leveraging device policy manager features and blocking removal by the user." — Ransomware policy.
+- The only device-owner carve-out in Play text: "Enterprise device management apps using device owner mode" (User Data, persistent device identifiers). And the Accessibility API policy permits preventing uninstall only when "authorized by a parent or guardian through a parental control app or by authorized administrators through enterprise management software."
+- There is **no** device-admin declaration form. `BIND_DEVICE_ADMIN` is not among the supported use cases in the Permissions Declaration Form (9214102). You cannot declaratively cover the device-owner path.
+
+**Enforcement is real and directly on point:**
+
+- **Boomerang** (parental-control app, 5M downloads) was removed May 2020. TechCrunch 2020-08-04: Google cited "Deceptive Behavior Policy … users' inability to easily remove the application" and the "Elevated Privilege Abuse" section; Google "doesn't allow apps to use the same mechanism Boomerang does, including Google's own." Google spokesperson: "We recognize the value of supervision apps in various contexts, and developers are free to create this experience with appropriate safeguards." — https://techcrunch.com/2020/08/04/parental-control-app-boomerang-repeatedly-blocked-from-play-store-losing-business/
+- SO 31484954 (2015): removal for a malformed device-admin receiver — "your app has a malformed AndroidManifest.xml file which may make it difficult for users to uninstall the app … upload a policy compliant version of this application as a new package name."
+- SO 73551970 (2022): "DEVICE ADMIN ABUSE" flag, even though `BIND_DEVICE_ADMIN` was not in the manifest — per-client builds had it.
+- SO 31961429: with `BIND_DEVICE_ADMIN` + `DEVICE_ADMIN_DISABLE_REQUESTED` + `DEVICE_ADMIN_ENABLED`, the upload stayed "Pending publication" indefinitely; removing the permission published it.
+
+**Corrected assumptions (do not repeat these):**
+
+- Current Play text does **not** require device-owner apps to ship via managed Google Play / private apps. The constraint is *use*, not distribution channel. Sarim is not enterprise-managed and not a parent/guardian parental-control app, so it falls outside the carve-outs.
+- The "2015–16 device-admin crackdown" as a named official announcement is **not verifiable** from any official source retrieved; enforcement ran through the existing Malware + Accessibility rules. Do not cite it as a policy.
+- Do not claim `IsMonitoringTool`. The Monitoring policy covers "monitoring another individual … parents to monitor their children or enterprise management"; Sarim monitors the user themselves.
+- "Safe mode" is not a Play policy term; blocking it maps to "prevent them from being uninstalled or stopped."
+- Consent does not cure the uninstall-block rule.
+
+**Risk ranking (from the research, highest first):**
+
+1. **Device-owner uninstall / safe-mode block** = explicit Elevated Privilege Abuse + Deceptive Behavior violation. Boomerang proves Play enforces this against a parental-control app; Sarim is a *self*-control app, i.e. outside the blessed category entirely. → Remove the device-owner uninstall/safe-mode block from the Play build; enforce via AccessibilityService + session gate instead.
+2. **Consumer device owner has no Play endorsement.** → Keep device owner strictly optional, framed in the listing as an advanced opt-in; never gate a core feature on it.
+3. **Shizuku + `dpm set-device-owner` + self-granted `WRITE_SECURE_SETTINGS` = privilege escalation.** → Drop the Shizuku/device-owner flow from the Play-distributed APK.
+
+### 8.2 Recommended policy posture for the Play build
+
+Given §8.1, the recommendation in §4.3 ("make device owner optional") is **insufficient**. The Play build should:
+
+- **Remove the Shizuku / device-owner flow entirely** from the Play-distributed APK (not just hide it). This is the single biggest reduction in rejection risk.
+- **Remove the self-update path** (`ApkUpdateInstaller`) from the Play build, as already recommended in §4.2 #6, because it invokes `PackageInstaller` and clears `DISALLOW_INSTALL_UNKNOWN_SOURCES`.
+- **Keep the AccessibilityService** with the required prominent disclosure + demo video, since it is the core mechanism and is justified as essential functionality.
+- **Keep everything else**: session gate, per-app limits, blocked words, focus mode, panic lock, color modes — these work without owner and are policy-clean.
+- The **sideload build** (current `release` variant) keeps the full feature set for power users.
+
+### 8.3 What still needs the other two research reports
+
+This section reflects only the device-admin research. Two further reports are expected to land (permissions/accessibility/self-update/account/listing) and should be folded into §4 when they arrive. Until then, treat §4's policy table as my own reading, not sourced.
 
 ## 5. Out of scope for this brief
 

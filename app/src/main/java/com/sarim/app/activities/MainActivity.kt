@@ -42,6 +42,8 @@ import com.sarim.app.screens.tabs.*
 import com.sarim.app.security.SecurityManager
 import com.sarim.app.ui.theme.SarimTheme
 import com.sarim.app.viewmodels.DeviceOwnerViewModel
+import com.sarim.app.AppPrefs
+import com.sarim.app.screens.common.OnboardingCarousel
 import com.sarim.app.viewmodels.NavigationViewModel
 import kotlinx.coroutines.delay
 
@@ -61,6 +63,10 @@ class MainActivity : LocalizedActivity() {
                 val viewModel: DeviceOwnerViewModel = viewModel()
                 viewModel.addShizukuListener()
                 val navViewModel: NavigationViewModel = viewModel()
+
+                var onboardingCompleted by remember {
+                    mutableStateOf(AppPrefs.isOnboardingCompleted(this))
+                }
 
                 val currentScreen = navViewModel.selectedTab()
                 val isRoot = currentScreen in listOf("restrictions", "apps", "config")
@@ -200,6 +206,13 @@ class MainActivity : LocalizedActivity() {
                             ) {
                                 LockScreen(onAuthenticated = { authenticated.value = true })
                             }
+                        else if (!onboardingCompleted)
+                            OnboardingCarousel(
+                                onFinish = {
+                                    AppPrefs.markOnboardingCompleted(this)
+                                    onboardingCompleted = true
+                                }
+                            )
                         else
                             Box(modifier = Modifier.padding(innerPadding)) {
                                 when (currentScreen) {

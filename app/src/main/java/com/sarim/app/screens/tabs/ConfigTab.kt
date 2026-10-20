@@ -11,6 +11,7 @@ import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.ImageSearch
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LockClock
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarim.app.SarimAccessibilityService
 import com.sarim.app.R
+import com.sarim.app.screens.common.OnboardingCarousel
 import com.sarim.app.screens.common.RecoveryGateDialog
 import com.sarim.app.screens.common.RecoveryGenerateDialog
 import com.sarim.app.screens.common.rememberRecoveryGate
@@ -59,6 +61,7 @@ fun ConfigTab(
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showKeyboardDialog by remember { mutableStateOf(false) }
     var showRecoveryDialog by remember { mutableStateOf(false) }
+    var showHowItWorks by remember { mutableStateOf(false) }
     val recoveryGate = rememberRecoveryGate()
     var showStartForcedRemovalDialog by remember { mutableStateOf(false) }
     var showCancelForcedRemovalDialog by remember { mutableStateOf(false) }
@@ -225,6 +228,15 @@ fun ConfigTab(
                             }
                         })
                     }
+                )
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            }
+            item {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.how_it_works)) },
+                    supportingContent = { Text(stringResource(R.string.how_it_works_desc)) },
+                    leadingContent = { Icon(Icons.Outlined.Info, null) },
+                    modifier = Modifier.clickable { showHowItWorks = true }
                 )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
             }
@@ -493,6 +505,10 @@ fun ConfigTab(
                 showRecoveryDialog = false
             }
         )
+    }
+
+    if (showHowItWorks) {
+        OnboardingCarousel(onFinish = { showHowItWorks = false })
     }
 
     RecoveryGateDialog(recoveryGate)

@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.sarim.app.BuildConfig
 import com.sarim.app.R
 import com.sarim.app.data.ApkUpdateInstaller
 import com.sarim.app.data.DeviceOwnerRepository
@@ -73,7 +74,13 @@ fun LockScreen(onAuthenticated: () -> Unit) {
 
     // Updating apps needs no authentication: only APKs of apps that are already installed go through.
     // Without the unknown sources restriction APKs install normally, so the updater is not offered.
-    val apkUpdatesAvailable = remember { ApkUpdateInstaller.isUnknownSourcesRestricted(context) }
+    val apkUpdatesAvailable = remember {
+        if (BuildConfig.PLAY_STORE_BUILD) {
+            false
+        } else {
+            ApkUpdateInstaller.isUnknownSourcesRestricted(context)
+        }
+    }
     var showingApkIntro by remember { mutableStateOf(false) }
     var pickedApk by remember { mutableStateOf<Uri?>(null) }
     val apkPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->

@@ -12,6 +12,9 @@ val localProperties = Properties().apply {
 }
 val releaseStoreFile = localProperties.getProperty("dechainer.storeFile")
 
+// The Play Store build drops paths Play policy rejects (installer / unknown-sources lifting).
+val playStoreBuild = providers.gradleProperty("playStoreBuild").map(String::toBoolean).getOrElse(false)
+
 android {
     namespace = "com.sarim.app"
     compileSdk {
@@ -77,6 +80,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        configureEach {
+            buildConfigField("boolean", "PLAY_STORE_BUILD", playStoreBuild.toString())
         }
     }
     compileOptions {
