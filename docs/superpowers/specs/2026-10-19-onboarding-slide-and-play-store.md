@@ -2,6 +2,20 @@
 
 Implementation brief for freebuff. No code changes in this document; it describes what to build and what to decide.
 
+> **Implementation status (updated 2026-10-23): DONE.** All §3/§4 acceptance criteria verified in this
+> tree: the carousel (`OnboardingCarousel.kt`, 5 slides) shows once after the recovery code is set
+> (`onboarding_prefs.onboarding_completed` in `AppPrefs`, never in session state), replaces the
+> nothing-else-but-tabs branch in `MainActivity`, and Skip/Got it both persist the flag; the Config
+> tab's "How it works" row (`ConfigTab.kt`, above Language settings) re-opens it regardless of the
+> flag; all slide strings exist in en/ar/pt (531 keys at parity in all three); slide 5's CTA only
+> calls `NavigationViewModel.navigateTo("setup_device_owner")` and nothing in §7's Shizuku/
+> device-owner flow was touched; `-PplayStoreBuild=true` produces `BuildConfig.PLAY_STORE_BUILD`
+> which suppresses the APK-update entry on the lock screen and leaves `ApkUpdateInstaller` dormant.
+> Tests: 59/59 across 8 suites, including the new `OnboardingStateTest` (4) and the parity test
+> `StringsParityTest` (2, enforces key equality that used to be manual). See §3.5/§6 met in
+> `RUN_AND_TEST.md`; the rest of §4 (signing, privacy policy, disclosures, listing) stays store-
+> side and is out of scope for code.
+
 ## 1. Goal
 
 1. Add a clean, easy-to-grasp **"How it works / how to use it"** slide to the app.

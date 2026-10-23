@@ -248,6 +248,8 @@ Sarim is a fork of [Déchaîner](https://github.com/warleysr/dechainer) (Apache 
 - Added Arabic as the app's default language — full `values-ar` translations, RTL layout support, and an Arabic Quran (Mus'haf) source for the reading challenge. Config → Language switches to English or Portuguese.
 - Added Arabic root/stem matching to the word blocker, since single-word matching does not work well for a morphological language.
 - Added unit test coverage for the security manager, and made Device Owner setup wait for the authoritative policy broadcast instead of guessing.
+- Added a first-run "How it works" carousel (5 slides, en/ar/pt) that appears once after the recovery code is set and can be re-opened any time from the Config tab.
+- Added a `-PplayStoreBuild=true` build flag (`BuildConfig.PLAY_STORE_BUILD`) that removes the self-update-by-APK path for the Play-distributed APK, per Google Play policy.
 
 ## License
 

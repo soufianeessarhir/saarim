@@ -8,29 +8,35 @@ Everything below was verified against this exact source tree. Build machine requ
 
 **Requirements:** JDK **17–21** (AGP rejects 22+; a system default of JDK 27 fails with the opaque message `What went wrong: 27-ea`), Android SDK platform 36, and the SDK location in `local.properties` (`sdk.dir=...`).
 
-This machine's JDK 21 lives at `~/.local/share/jdks/jdk-21.0.12.1+1`. Recommended: pin it once in `gradle.properties` so plain `./gradlew` works everywhere:
-
-```properties
-org.gradle.java.home=/home/<you>/.local/share/jdks/jdk-21.0.12.1+1
-```
+JDK 21 is pinned in `gradle.properties` (`org.gradle.java.home`); plain `./gradlew` works now. (The JDK lives at `~/.local/share/jdks/jdk-21.0.12.1+1`.)
 
 ### Build commands
 
 ```bash
 # Full debug APK (output: app/build/outputs/apk/debug/app-debug.apk)
-JAVA_HOME=~/.local/share/jdks/jdk-21.0.12.1+1 ./gradlew :app:assembleDebug
+./gradlew :app:assembleDebug
 
 # Release (needs 'dechainer.store*' keys in local.properties, else unsigned)
-JAVA_HOME=~/.local/share/jdks/jdk-21.0.12.1+1 ./gradlew :app:assembleRelease
+./gradlew :app:assembleRelease
 ```
 
 ### Unit tests (JVM, no phone needed)
 
 ```bash
-JAVA_HOME=~/.local/share/jdks/jdk-21.0.12.1+1 ./gradlew :app:testDebugUnitTest
+./gradlew :app:testDebugUnitTest
 ```
 
-53 tests in 6 suites — SecurityManager (24: recovery code, session, impulse block incl. clock-tamper resistance, config), LocaleUtils (9: the Arabic default, wrapped Arabic/RTL resources, the system per-app pick, a choice made in Config), FocusCycle (6), FocusSchedule (6), ColorFilterScope (7), ExampleUnitTest (1). Results land in `app/build/reports/tests/`.
+59 tests in 8 suites — SecurityManager (24: recovery code, session, impulse block incl. clock-tamper resistance, config), LocaleUtils (9: the Arabic default, wrapped Arabic/RTL resources, the system per-app pick, a choice made in Config), ColorFilterScope (7), FocusCycle (6), FocusSchedule (6), OnboardingState (4: the one-time flag default/persist, 5 slides, the owner-setup CTA route), StringsParity (2: en/ar/pt key parity, full 531-key set), ExampleUnitTest (1). Results land in `app/build/reports/tests/`.
+
+### Play Store build
+
+A Play-distributed APK must drop the self-update path (an app that installs other APKs and lifts the unknown-sources restriction is a Play policy violation). Pass `-PplayStoreBuild=true` to produce it:
+
+```bash
+./gradlew :app:assembleDebug -PplayStoreBuild=true
+```
+
+That flag becomes `BuildConfig.PLAY_STORE_BUILD`: the "update an app by APK" button on the lock screen disappears (the updater is never offered) and `ApkUpdateInstaller` stays dormant. The default build keeps the self-update path for sideload users. Device owner / Shizuku setup is untouched in both builds.
 
 > [!NOTE]
 > Never filter Gradle output through `grep`/`tail` alone for verification — a pipe hides the exit code. Use `${PIPESTATUS[0]}` (bash) as done here, or re-check `echo $?` after.
@@ -60,6 +66,7 @@ Sarim is "hard to bypass" because it takes over system protections. Every step i
 3. **Config tab → Device owner state → "Get owner privileges"**. It runs `dpm set-device-owner com.sarim.app/.SarimDeviceAdminReceiver` through Shizuku and then *waits for the authoritative broadcast* (`admin_result_received`), not just the shell exit code. The Config tab badge flips to green **Granted**.
 4. **Config tab → Advanced blocking** — this enables `SarimAccessibilityService` (required for word blocking, visual blocking, activity blocking, torrent blocking, time limits, color modes).
 5. **Recovery code wizard** — 16 characters. Write it on paper, confirm by typing it back from the paper, store the paper somewhere hard to reach. There is no digital copy.
+6. **Onboarding carousel** — on the first entry with the code set, a 5-slide "How it works" tour appears before the tabs. Skip and Got it both dismiss it for good; it can always be re-opened from Config → *How it works*. It is instructional only: it does not gate the tabs, and its slide-5 "Set up now" button just navigates to the existing owner-setup screen.
 
 *Fallback (clean device, adb):* if Shizuku pairing is painful, with no other device-admin configured, factory-reset the device (or wipe data), then `adb shell dpm set-device-owner com.sarim.app/.SarimDeviceAdminReceiver` directly from USB.
 
@@ -78,6 +85,7 @@ Sarim is "hard to bypass" because it takes over system protections. Every step i
 | # | What to do | What should happen |
 |---|---|---|
 | 1 | Open app first time | Recovery wizard, not tabs, and no bypass |
+| 2 | Generate + confirm the 16-char code | First-run **How it works** carousel (5 slides) shows once, before the tabs; Skip and Got it both dismiss it for good |
 | 2 | Generate + confirm the 16-char code | Proceed to the lock screen every launch until session open |
 | 3 | Enter the code wrong | Lock screen stays; timer never opens anything |
 | 4 | Enter the code right | Session countdown starts (10 min) and shows as a pill in the app bar; refresh and logout buttons appear |
@@ -97,6 +105,8 @@ Sarim is "hard to bypass" because it takes over system protections. Every step i
 | 18 | Recovery: mistype code 3× then enter from the paper | Opens session and returns to tabs |
 | 19 | Config → Forced removal: cancel before 48 h | Available, cancellable, ticking clock visible |
 | 20 | Airplane mode / reboot while any protection is active | All state lives in `SharedPreferences` + Device Owner; nothing is lost and nothing needs network |
+| 21 | Config tab → *How it works* | The carousel re-opens at any time, from any language, even after the first-run flag is set |
+| 22 | Launch a `-PplayStoreBuild=true` APK and open the lock screen | The APK-update entry is absent; with the normal build it shows when unknown-source installs are restricted |
 
 ### Manual device sanity (battery, not just correctness)
 
@@ -143,7 +153,7 @@ waydroid session stop ; sudo waydroid container stop   # shut everything down
 The debug APK already carries `x86_64` native libraries (LiteRT, for visual blocking), so the container can run it as-is:
 
 ```bash
-JAVA_HOME=~/.local/share/jdks/jdk-21.0.12.1+1 ./gradlew :app:assembleDebug
+./gradlew :app:assembleDebug
 waydroid app install app/build/outputs/apk/debug/app-debug.apk
 waydroid app launch com.sarim.app
 waydroid app remove com.sarim.app     # drop the app and its data to start the wizard over
@@ -176,7 +186,7 @@ waydroid adb connect    # then accept the authorization dialog inside the Androi
 
 adb devices             # sanity check: the container is listed
 adb logcat -s Sarim     # app logs (Timber debug tree in debug builds)
-JAVA_HOME=~/.local/share/jdks/jdk-21.0.12.1+1 ./gradlew :app:connectedDebugAndroidTest
+./gradlew :app:connectedDebugAndroidTest
 ```
 
 `adb install -r`, `adb shell` and screenshots (`waydroid shell screencap -p /sdcard/s.png` then `adb pull`) all behave like they do on a phone, so bug reports can be captured here too.
@@ -204,8 +214,8 @@ Disclaimers aside, what remains is a fast loop for logic, resources and policy: 
 ## 5. What "everything works" means here (source-level verification already done)
 
 - `:app:compileDebugKotlin` / `assembleDebug`: exit 0, APK produced.
-- `:app:testDebugUnitTest`: 53/53 pass (6 suites), including the app-language tests that run on both sides of the API 33 split.
+- `:app:testDebugUnitTest`: 59/59 pass (8 suites), including the app-language tests that run on both sides of the API 33 split and the new onboarding-test suites.
 - The Arabic default is applied in `SarimApplication.onCreate`; on API 30–32 every screen is re-wrapped with that language in `LocalizedActivity`, on 33+ the framework's per-app language does it.
-- `processDebugResources`: en/pt/ar all present (514 keys matching, placeholders aligned).
+- `processDebugResources`: en/pt/ar all present (531 keys matching, placeholders aligned), and `StringsParityTest` now enforces the key parity that used to be checked by hand.
 - Digit-scanned all three language files for stray CJK/Hangul/Devanagari/fullwidth characters: none remain.
 - Full integration tests on a physical device are **not runnable from this machine** (no attached device); the instrumented `ExampleInstrumentedTest` and a real phone still serve as the final gate — use §2 and §3 above, or §4 in Waydroid.
