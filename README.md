@@ -93,6 +93,7 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 |---|---|
 | 🛡️ **Device Owner restrictions** | Block VPNs, private DNS changes, factory reset, app installs, USB debugging and dozens more `UserManager` policies. |
 | 🧠 **On-device visual blocking** | A local TensorFlow Lite model detects explicit images and video on screen and closes the app. Nothing is uploaded. |
+| 🔒 **Strictness lock** | Locks adult-content blocking on for 90 days or longer. Nothing in the app can release it before it expires. |
 | ⌨️ **Word blocking** | Erases forbidden words as they're typed, or closes the app when they appear anywhere on screen. |
 | 🚨 **Impulse lock** | A panic button on the lock screen that locks Sarim (and chosen apps) for 15 minutes to 6 hours, resistant to clock changes. |
 | 🍅 **Focus mode** | Pomodoro sessions that suspend distracting apps during each focus period and give them back on breaks. |
@@ -115,6 +116,7 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 - Forces a family-safe private DNS provider (Cloudflare Family, AdGuard DNS Family, CleanBrowsing, or a custom host).
 - Applies `URLBlocklist` and `ForceGoogleSafeSearch` policies to browsers that support them.
 - Any newly installed browser that doesn't support these policies is suspended outright instead of being left unrestricted.
+- Blocks Tor and Orbot: every installed Tor component is suspended, and so is anything installed later. Detection isn't a fixed list of package ids — the package name *and* the visible app name are checked, so a Tor client published under a different id (a rebuild, a rebrand, a future Tor Project app) is caught too. Turning the block on sweeps the apps already on the phone too, so a client installed beforehand can't slip past it.
 
 </details>
 
@@ -128,7 +130,7 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 - Optional usage warnings as notifications, in as many stages as you want, before a limit runs out.
 - A minimum cooldown before an app can be reopened.
 - Automatically suspends apps rated 18+ or flagged with explicit content, checked against the Play Store's content rating page when an app is installed or first opened.
-- Automatically blocks torrent apps (detected by their ability to handle magnet links or `.torrent` files).
+- Automatically blocks torrent apps (detected by their ability to handle magnet links or `.torrent` files), including the ones already installed when the block is turned on.
 
 </details>
 
@@ -146,6 +148,8 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 - A local TensorFlow Lite model (MobileNetV2) classifies on-screen images and video into drawings, hentai, neutral, porn, and sexy. No data leaves the device.
 - The Accessibility Service scans the screen of selected apps for likely media regions, captures them, and runs the classifier; the app is closed when the combined score for the selected categories crosses a configurable threshold.
 - Optional escalation: after a set number of blocks within a time window, the app is suspended for a configurable duration instead of just being closed.
+- **Strictness lock:** pins visual blocking on, with the adult categories enforced, for a period you choose — 90 days minimum, up to 10 years. While it runs, the switches that would narrow or disable it are frozen, and any attempt to clear the stored settings from outside the app is undone. It survives reboots and resists system clock changes in both directions.
+- The only ways out before it expires are the 48-hour forced removal, or removing the app. The recovery code does **not** release it — that's the point of a lock you can't talk yourself out of at 1 a.m.
 
 </details>
 
@@ -217,6 +221,8 @@ During setup, Sarim generates a unique **16-character recovery code**. It's the 
 
 A step-by-step wizard sets it up, both on first setup and whenever you generate a new code: write it down on paper, type it back from the paper to confirm every letter, then choose a safe place to store it.
 
+The last step points out the option that works best: handing the code to an **accountability partner** — a friend, a parent, a spouse — rather than keeping it in reach. The wizard can hand it straight to the share sheet with a ready-written message, so it leaves your phone in one step and you're not able to look at it when temptation arrives.
+
 > [!IMPORTANT]
 > - **Write it on paper.** The key must be recorded by hand, on a physical piece of paper.
 > - **Store it somewhere hard to reach**, such as a high shelf or a different building.
@@ -228,6 +234,9 @@ The Config tab offers a **forced removal** option as a deliberate last resort. I
 
 > [!WARNING]
 > **Sarim is designed to be uncompromising.** Activating full system restrictions and then losing your recovery code may leave you permanently unable to change system settings or restore the device until the 48-hour forced removal completes. This self-lockout is intentional: it's what stops your future self from relapsing. Besides the recovery code and forced removal, there is no other backdoor.
+
+> [!NOTE]
+> If you start a **strictness lock**, the recovery code deliberately stops working for adult-content settings until the lock expires: the 48-hour forced removal is the only way out early. Choose a period you can live with before starting it.
 
 ## Privacy
 
@@ -250,6 +259,7 @@ Sarim is a fork of [Déchaîner](https://github.com/warleysr/dechainer) (Apache 
 - Added unit test coverage for the security manager, and made Device Owner setup wait for the authoritative policy broadcast instead of guessing.
 - Added a first-run "How it works" carousel (5 slides, en/ar/pt) that appears once after the recovery code is set and can be re-opened any time from the Config tab.
 - Added a `-PplayStoreBuild=true` build flag (`BuildConfig.PLAY_STORE_BUILD`) that removes the self-update-by-APK path for the Play-distributed APK, per Google Play policy.
+- Added the strictness lock (90-day minimum adult-content lock, enforced from the Accessibility Service), identity-based Tor/Orbot blocking with an install-time sweep, and accountability-partner guidance in the recovery-code wizard.
 
 ## License
 

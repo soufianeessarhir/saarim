@@ -26,6 +26,10 @@
     <string name="recovery_wizard_store_tip_away">Away from your phone, somewhere you won\'t reach on impulse</string>
     <string name="recovery_wizard_store_tip_findable">Easy to find when you really need it — a drawer, a folder or with someone you trust</string>
     <string name="recovery_wizard_store_tip_digital">No photos or digital copies</string>
+    <string name="recovery_wizard_store_tip_partner">Best of all: hand it to an accountability partner who keeps it for you</string>
+    <string name="partner_share_button">Send to my accountability partner</string>
+    <string name="partner_share_chooser">Share the recovery code</string>
+    <string name="partner_share_message">My Sarim recovery code is %1$s. Please keep it somewhere I can\'t reach — I need it to change my restrictions, and I don\'t want to be able to grab it on impulse.</string>
     <string name="recovery_wizard_store_tip_old">Throw away the paper with the old code</string>
     <string name="recovery_wizard_stored">I stored the paper in a safe place</string>
     <string name="restrictions">Restrictions</string>
@@ -166,6 +170,8 @@
     <string name="browser_restrictions_desc">Manage browser permissions and blocked sites</string>
     <string name="block_torrents">Block Torrent apps</string>
     <string name="block_torrents_desc">Automatically blocks newly installed Torrent apps</string>
+    <string name="block_tor">Block Tor / Orbot</string>
+    <string name="block_tor_desc">Automatically blocks Tor browser and Orbot apps</string>
     <string name="apk_update_button">Update apps</string>
     <string name="apk_update_intro_title">Update apps via APK</string>
     <string name="apk_update_intro_text">Pick the APK file of an app that is already installed on this phone to update it.\n\nOnly updates are allowed: APKs of new apps stay blocked.</string>
@@ -390,6 +396,20 @@
 
     <string name="visual_blocking">Visual blocking</string>
     <string name="visual_blocking_desc">Detects inappropriate images, gifs and videos with an on-device ML model</string>
+    <string name="strictness_lock">Strictness lock</string>
+    <string name="strictness_lock_desc">Keeps adult-content blocking on for a period you can\'t cut short</string>
+    <string name="strictness_lock_locked_title">Strictness lock active</string>
+    <string name="strictness_lock_remaining">%1$d days left</string>
+    <string name="strictness_lock_ended">Your strictness period has ended — these settings can be changed again.</string>
+    <string name="strictness_lock_start">Start the strictness lock</string>
+    <string name="strictness_lock_duration_title">How long should it hold?</string>
+    <string name="strictness_lock_duration_text">Pick a period of at least %1$d days. Once started it cannot be cut short: the recovery code will not end it, and neither will turning these settings off. The only way out before it expires is the 48-hour forced removal.</string>
+    <string name="strictness_lock_days_label">Days</string>
+    <string name="strictness_lock_days_invalid">At least %1$d days</string>
+    <string name="strictness_lock_what_changes">Starting the lock switches on Visual blocking, forces the adult categories and turns on the Tor block. Until the period ends, none of them can be turned off.</string>
+    <string name="strictness_lock_requires_apps">Pick at least one app to monitor first.</string>
+    <string name="strictness_lock_pinned">Pinned by the strictness lock</string>
+    <string name="strictness_lock_start_confirm">Start</string>
     <string name="visual_blocking_explanation">This feature scans images, gifs and videos shown on screen in the selected apps using a machine learning model that runs entirely on your device — nothing is uploaded or sent anywhere. When content matching the selected categories is detected above the chosen sensitivity, the app is closed automatically.</string>
     <string name="visual_blocking_enable">Enable visual blocking</string>
     <string name="visual_blocking_requires_accessibility">Requires advanced blocking (accessibility service) to be enabled</string>

@@ -136,6 +136,47 @@ class SecurityManager {
             prefs.edit { putBoolean("block_torrents", enabled) }
         }
 
+        fun isBlockTorEnabled(context: Context): Boolean {
+            val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
+            return prefs.getBoolean("block_tor", false)
+        }
+
+        fun setBlockTorEnabled(context: Context, enabled: Boolean) {
+            val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
+            prefs.edit { putBoolean("block_tor", enabled) }
+        }
+
+        /**
+         * Tor packages suspended *right now* because the "Block Tor / Orbot" toggle is on. Kept
+         * apart from the apps that merely look like Tor so that turning the toggle off releases
+         * what this feature suspended and nothing else.
+         */
+        fun getTorSuspendedPackages(context: Context): Set<String> {
+            val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
+            return prefs.getStringSet("tor_suspended_packages", emptySet()) ?: emptySet()
+        }
+
+        fun setTorSuspendedPackages(context: Context, packages: Set<String>) {
+            val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
+            prefs.edit { putStringSet("tor_suspended_packages", packages) }
+        }
+
+        /**
+         * Torrent apps suspended *right now* because the "Block Torrent apps" toggle is on. Kept
+         * apart from the Tor set so turning one toggle off releases exactly what that feature
+         * suspended — a client that handles both magnet links and onion traffic would otherwise
+         * be let go by whichever toggle the user flipped first.
+         */
+        fun getTorrentSuspendedPackages(context: Context): Set<String> {
+            val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
+            return prefs.getStringSet("torrent_suspended_packages", emptySet()) ?: emptySet()
+        }
+
+        fun setTorrentSuspendedPackages(context: Context, packages: Set<String>) {
+            val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
+            prefs.edit { putStringSet("torrent_suspended_packages", packages) }
+        }
+
         fun getAccessChallenges(context: Context): List<ChallengeType> {
             val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
             val stored = prefs.getStringSet("access_challenges", null)

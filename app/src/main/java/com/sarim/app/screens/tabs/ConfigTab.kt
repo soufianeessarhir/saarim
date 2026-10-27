@@ -18,6 +18,7 @@ import androidx.compose.material.icons.outlined.LockClock
 import androidx.compose.material.icons.outlined.NoAdultContent
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.outlined.Web
@@ -38,6 +39,7 @@ import com.sarim.app.screens.common.RecoveryGateDialog
 import com.sarim.app.screens.common.RecoveryGenerateDialog
 import com.sarim.app.screens.common.rememberRecoveryGate
 import com.sarim.app.security.SecurityManager
+import com.sarim.app.security.StrictnessLock
 import com.sarim.app.utils.LocaleUtils
 import com.sarim.app.viewmodels.DeviceOwnerViewModel
 import com.sarim.app.viewmodels.NavigationViewModel
@@ -77,6 +79,11 @@ fun ConfigTab(
 
     var shuffleKeyboard by remember { mutableStateOf(SecurityManager.isShuffleKeyboardEnabled(context)) }
     var blockTorrents by remember { mutableStateOf(SecurityManager.isBlockTorrentsEnabled(context)) }
+    var blockTor by remember { mutableStateOf(SecurityManager.isBlockTorEnabled(context)) }
+
+    // While the strictness lock runs, the Tor block is pinned on and the service re-asserts it, so
+    // the switch is shown as fixed rather than letting the user flip it and watch it snap back.
+    val strictnessLocked = remember { StrictnessLock.isLocked(context) }
 
     val advancedBlocking = SarimAccessibilityService.isRunning
 
@@ -225,6 +232,35 @@ fun ConfigTab(
                             recoveryGate.run {
                                 blockTorrents = checked
                                 SecurityManager.setBlockTorrentsEnabled(context, checked)
+                            }
+                        })
+                    }
+                )
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            }
+            item {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.block_tor)) },
+                    supportingContent = {
+                        Text(
+                            stringResource(
+                                if (strictnessLocked) R.string.strictness_lock_pinned
+                                else R.string.block_tor_desc
+                            )
+                        )
+                    },
+                    leadingContent = { Icon(Icons.Outlined.Security, "") },
+                    trailingContent = {
+                        Switch(blockTor, enabled = !strictnessLocked, onCheckedChange = { checked ->
+                            if (checked && !advancedBlocking) {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(advancedBlockingRequiredMsg)
+                                }
+                                return@Switch
+                            }
+                            recoveryGate.run {
+                                blockTor = checked
+                                SecurityManager.setBlockTorEnabled(context, checked)
                             }
                         })
                     }

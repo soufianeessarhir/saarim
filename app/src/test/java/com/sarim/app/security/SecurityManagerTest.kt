@@ -244,6 +244,56 @@ class SecurityManagerTest {
         assertFalse(SecurityManager.isBlockTorrentsEnabled(context))
     }
 
+    @Test
+    fun configToggles_blockTor_defaults_off_and_roundTrips() {
+        context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE).edit()
+            .remove("block_tor").commit()
+        assertFalse("blocking Tor must be opt-in", SecurityManager.isBlockTorEnabled(context))
+
+        SecurityManager.setBlockTorEnabled(context, true)
+        assertTrue(SecurityManager.isBlockTorEnabled(context))
+        SecurityManager.setBlockTorEnabled(context, false)
+        assertFalse(SecurityManager.isBlockTorEnabled(context))
+    }
+
+    @Test
+    fun configToggles_torSuspendedPackages_roundTrip() {
+        // Must default to empty, or the first service start would try to release nothing and
+        // turning the toggle off would have no record of what to let go.
+        context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE).edit()
+            .remove("tor_suspended_packages").commit()
+        assertEquals(emptySet<String>(), SecurityManager.getTorSuspendedPackages(context))
+
+        SecurityManager.setTorSuspendedPackages(context, setOf("org.torproject.torbrowser"))
+        assertEquals(
+            setOf("org.torproject.torbrowser"),
+            SecurityManager.getTorSuspendedPackages(context)
+        )
+
+        SecurityManager.setTorSuspendedPackages(context, emptySet())
+        assertEquals(emptySet<String>(), SecurityManager.getTorSuspendedPackages(context))
+    }
+
+    @Test
+    fun configToggles_torrentSuspendedPackages_roundTrip_andStaySeparateFromTor() {
+        context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE).edit()
+            .remove("torrent_suspended_packages").commit()
+        assertEquals(emptySet<String>(), SecurityManager.getTorrentSuspendedPackages(context))
+
+        SecurityManager.setTorrentSuspendedPackages(context, setOf("com.example.torrent"))
+        assertEquals(
+            setOf("com.example.torrent"),
+            SecurityManager.getTorrentSuspendedPackages(context)
+        )
+
+        // The two features track their own suspensions, so turning one off can't release the
+        // other's apps.
+        assertEquals(emptySet<String>(), SecurityManager.getTorSuspendedPackages(context))
+
+        SecurityManager.setTorrentSuspendedPackages(context, emptySet())
+        assertEquals(emptySet<String>(), SecurityManager.getTorrentSuspendedPackages(context))
+    }
+
     // ------------------------------------------------------------------ challenge config
 
     @Test

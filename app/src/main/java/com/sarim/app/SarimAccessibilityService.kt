@@ -55,6 +55,7 @@ import com.sarim.app.models.UsageAlertStage
 import com.sarim.app.notifications.FocusService
 import com.sarim.app.notifications.UsageWarningNotifier
 import com.sarim.app.security.SecurityManager
+import com.sarim.app.security.StrictnessLock
 import com.sarim.app.utils.HomeScreenDetector
 import com.sarim.app.utils.NightLightOverlay
 import com.sarim.app.utils.NsfwContentDetector
@@ -112,6 +113,10 @@ class SarimAccessibilityService : AccessibilityService() {
     private var nsfwDetector: NsfwContentDetector? = null
     private var lastNsfwScanElapsedMs = 0L
 
+    // Reused across package-added broadcasts and Tor sweeps so BrowserRestrictionsManager's
+    // installed-app cache actually survives between them (it's per-instance).
+    private val browserManager by lazy { BrowserRestrictionsManager(applicationContext) }
+
     // Cached copies of visualBlockingPrefs (VisualBlockingSettings), refreshed in
     // updateVisualBlockingSettings() so onAccessibilityEvent doesn't hit SharedPreferences on
     // every event — kept in sync live via prefsListener while the settings screen is open.
@@ -162,7 +167,9 @@ class SarimAccessibilityService : AccessibilityService() {
                 AppRepository.reapplyHiddenIfNeeded(packageName)
             }
 
-            val manager = BrowserRestrictionsManager(applicationContext)
+            val manager = browserManager
+            manager.invalidateTorCache()
+            manager.invalidateTorrentCache()
             val isBrowser = manager.isBrowser(packageName)
 
             if (isBrowser) {
@@ -176,8 +183,25 @@ class SarimAccessibilityService : AccessibilityService() {
             }
             else {
                 val isTorrentApp = manager.isTorrentApp(packageName)
-                if (isTorrentApp && SecurityManager.isBlockTorrentsEnabled(applicationContext))
+                if (isTorrentApp && SecurityManager.isBlockTorrentsEnabled(applicationContext)) {
                     suspendPackage(packageName)
+                    // Track it, or switching the toggle off would never release an app that was
+                    // installed while the block was already on.
+                    SecurityManager.setTorrentSuspendedPackages(
+                        applicationContext,
+                        SecurityManager.getTorrentSuspendedPackages(applicationContext) + packageName
+                    )
+                }
+
+                // Tor / Orbot: official ids, identity match on the package name/label, or the
+                // installed-app sweep — see BrowserRestrictionsManager.isTorApp.
+                if (manager.isTorApp(packageName) && SecurityManager.isBlockTorEnabled(applicationContext)) {
+                    suspendPackage(packageName)
+                    SecurityManager.setTorSuspendedPackages(
+                        applicationContext,
+                        SecurityManager.getTorSuspendedPackages(applicationContext) + packageName
+                    )
+                }
             }
 
             if (!isUpdate) {
@@ -266,6 +290,9 @@ class SarimAccessibilityService : AccessibilityService() {
 
             visualBlockingPrefs -> {
                 updateVisualBlockingSettings()
+                // Turning visual blocking off is the exact route the strictness lock exists to
+                // close; re-assert it and the rest of what the lock pins.
+                StrictnessLock.enforce(applicationContext)
             }
 
             colorFilterPrefs -> {
@@ -284,6 +311,13 @@ class SarimAccessibilityService : AccessibilityService() {
                 // Written by SecurityManager both when the panic button starts a block and when
                 // the block is found to have run out.
                 if (key == "impulse_block_active") syncImpulseSuspension()
+                // The "Block Tor / Orbot" switch itself. Order matters: re-assert the lock first,
+                // then bring the Tor suspensions in line with whatever it settled on.
+                if (key == "block_tor") {
+                    StrictnessLock.enforce(applicationContext)
+                    syncTorSuspension()
+                }
+                if (key == "block_torrents") syncTorrentSuspension()
             }
         }
     }
@@ -507,6 +541,9 @@ class SarimAccessibilityService : AccessibilityService() {
         restoreNsfwSuspensions()
         syncImpulseSuspension()
         FocusMode.sync(applicationContext)
+        StrictnessLock.enforce(applicationContext)
+        syncTorSuspension()
+        syncTorrentSuspension()
 
         val dpm = getSystemService(DEVICE_POLICY_SERVICE) as DevicePolicyManager
         val admin = ComponentName(this, SarimDeviceAdminReceiver::class.java)
@@ -1099,6 +1136,101 @@ class SarimAccessibilityService : AccessibilityService() {
     private fun isHeldByOtherBlock(pkg: String): Boolean {
         val ctx = applicationContext
         return pkg in SecurityManager.getActiveImpulseSuspension(ctx) || FocusMode.isHolding(ctx, pkg)
+    }
+
+    /**
+     * Brings the "Block Tor / Orbot" toggle in line with what's installed: with it on, every
+     * installed Tor component is suspended; with it off, exactly the apps this feature suspended
+     * are released.
+     *
+     * Suspending on enable — not only on install — is what closes the obvious bypass of putting a
+     * Tor client on the phone *before* turning the toggle on: an app that was already installed
+     * never produces the package-added broadcast that [packageReceiver] reacts to.
+     *
+     * Called from the prefs listener (the switch itself) and from [onServiceConnected], so a
+     * toggle flipped while the service was down still applies.
+     */
+    private fun syncTorSuspension() {
+        val ctx = applicationContext
+        if (!SecurityManager.isBlockTorEnabled(ctx)) {
+            releaseTorSuspension()
+            return
+        }
+
+        browserManager.invalidateTorCache()
+        val targets = browserManager.getPossibleTorApps()
+            .filterNot {
+                it == packageName || isHeldByOtherBlock(it) || nsfwSuspensionTracker.isSuspended(it)
+            }
+            .toSet()
+        if (targets.isEmpty()) return
+
+        suspendPackages(targets.toTypedArray(), true)
+        SecurityManager.setTorSuspendedPackages(ctx, targets)
+        Timber.d("Tor block: suspended ${targets.size} app(s): $targets")
+    }
+
+    private fun releaseTorSuspension() {
+        val ctx = applicationContext
+        val suspended = SecurityManager.getTorSuspendedPackages(ctx)
+        if (suspended.isEmpty()) return
+
+        // Same guard as the impulse release: a package another block is still holding onto must
+        // not be let go here, or that block would end early.
+        val releasable = suspended.filterNot {
+            isHeldByOtherBlock(it) || nsfwSuspensionTracker.isSuspended(it) ||
+                it in SecurityManager.getTorrentSuspendedPackages(ctx)
+        }
+        if (releasable.isNotEmpty()) suspendPackages(releasable.toTypedArray(), false)
+
+        SecurityManager.setTorSuspendedPackages(ctx, emptySet())
+        Timber.d("Tor block: released ${releasable.size} of ${suspended.size} app(s)")
+    }
+
+    /**
+     * The same treatment for the "Block Torrent apps" switch. Detection already sees a torrent
+     * client an hour after it was installed — the intent queries don't care when it arrived — but
+     * nothing suspends it unless [packageReceiver] fires, so an app put on the phone *before* the
+     * toggle was flipped stayed usable indefinitely.
+     *
+     * Called from the prefs listener (the switch itself) and from [onServiceConnected], so a
+     * toggle flipped while the service was down still applies.
+     */
+    private fun syncTorrentSuspension() {
+        val ctx = applicationContext
+        if (!SecurityManager.isBlockTorrentsEnabled(ctx)) {
+            releaseTorrentSuspension()
+            return
+        }
+
+        browserManager.invalidateTorrentCache()
+        val targets = browserManager.getPossibleTorrentApps()
+            .filterNot {
+                it == packageName || isHeldByOtherBlock(it) || nsfwSuspensionTracker.isSuspended(it)
+            }
+            .toSet()
+        if (targets.isEmpty()) return
+
+        suspendPackages(targets.toTypedArray(), true)
+        SecurityManager.setTorrentSuspendedPackages(ctx, targets)
+        Timber.d("Torrent block: suspended ${targets.size} app(s): $targets")
+    }
+
+    private fun releaseTorrentSuspension() {
+        val ctx = applicationContext
+        val suspended = SecurityManager.getTorrentSuspendedPackages(ctx)
+        if (suspended.isEmpty()) return
+
+        // A package still held by the impulse block, a focus period, visual blocking or the Tor
+        // block must not be let go here, or that block would end early.
+        val releasable = suspended.filterNot {
+            isHeldByOtherBlock(it) || nsfwSuspensionTracker.isSuspended(it) ||
+                it in SecurityManager.getTorSuspendedPackages(ctx)
+        }
+        if (releasable.isNotEmpty()) suspendPackages(releasable.toTypedArray(), false)
+
+        SecurityManager.setTorrentSuspendedPackages(ctx, emptySet())
+        Timber.d("Torrent block: released ${releasable.size} of ${suspended.size} app(s)")
     }
 
     private fun syncColorFilters() {

@@ -35,6 +35,6 @@ class StringsParityTest {
 
     @Test
     fun `the english file holds the full set, not a stub`() {
-        stringKeys("values").size shouldBe 531
+        stringKeys("values").size shouldBe 551
     }
 }

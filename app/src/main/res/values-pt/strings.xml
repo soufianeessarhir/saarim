@@ -43,6 +43,10 @@
     <string name="recovery_wizard_store_tip_away">Longe do celular, onde você não alcance por impulso</string>
     <string name="recovery_wizard_store_tip_findable">Fácil de achar quando realmente precisar — uma gaveta, uma pasta ou com alguém de confiança</string>
     <string name="recovery_wizard_store_tip_digital">Sem fotos ou cópias digitais</string>
+    <string name="recovery_wizard_store_tip_partner">Melhor ainda: entregue a um parceiro de responsabilidade, que guarda por você</string>
+    <string name="partner_share_button">Enviar ao meu parceiro de responsabilidade</string>
+    <string name="partner_share_chooser">Compartilhar o código de recuperação</string>
+    <string name="partner_share_message">Meu código de recuperação do Sarim é %1$s. Guarde em um lugar onde eu não consiga alcançar — preciso dele para mudar minhas restrições, e não quero conseguir pegá-lo por impulso.</string>
     <string name="recovery_wizard_store_tip_old">Jogue fora o papel com o código antigo</string>
     <string name="recovery_wizard_stored">Guardei o papel em um local seguro</string>
     <string name="restrictions">Restrições</string>
@@ -183,6 +187,8 @@
     <string name="browser_restrictions_desc">Gerenciar permissões de navegadores e sites bloqueados</string>
     <string name="block_torrents">Bloquear apps de Torrent</string>
     <string name="block_torrents_desc">Bloqueia automaticamente novos apps de Torrent instalados</string>
+    <string name="block_tor">Bloquear Tor / Orbot</string>
+    <string name="block_tor_desc">Bloqueia automaticamente apps Tor e Orbot</string>
     <string name="apk_update_button">Atualizar apps</string>
     <string name="apk_update_intro_title">Atualizar apps via APK</string>
     <string name="apk_update_intro_text">Escolha o arquivo APK de um app que já está instalado neste celular para atualizá-lo.\n\nSomente atualizações são permitidas: APKs de apps novos continuam bloqueados.</string>
@@ -407,6 +413,20 @@
 
     <string name="visual_blocking">Bloqueio visual</string>
     <string name="visual_blocking_desc">Detecta imagens, gifs e vídeos impróprios com um modelo de ML no dispositivo</string>
+    <string name="strictness_lock">Trava de rigor</string>
+    <string name="strictness_lock_desc">Mantém o bloqueio de conteúdo adulto ligado por um período que você não pode encurtar</string>
+    <string name="strictness_lock_locked_title">Trava de rigor ativa</string>
+    <string name="strictness_lock_remaining">Faltam %1$d dias</string>
+    <string name="strictness_lock_ended">Seu período de rigor terminou — estas configurações podem ser alteradas novamente.</string>
+    <string name="strictness_lock_start">Iniciar a trava de rigor</string>
+    <string name="strictness_lock_duration_title">Quanto tempo deve durar?</string>
+    <string name="strictness_lock_duration_text">Escolha um período de pelo menos %1$d dias. Depois de iniciada, ela não pode ser encurtada: o código de recuperação não a encerra, e desligar estas configurações também não. A única saída antes do fim é a remoção forçada de 48 horas.</string>
+    <string name="strictness_lock_days_label">Dias</string>
+    <string name="strictness_lock_days_invalid">Pelo menos %1$d dias</string>
+    <string name="strictness_lock_what_changes">Iniciar a trava liga o Bloqueio visual, força as categorias de conteúdo adulto e ativa o bloqueio de Tor. Até o fim do período, nada disso pode ser desligado.</string>
+    <string name="strictness_lock_requires_apps">Escolha pelo menos um app para monitorar primeiro.</string>
+    <string name="strictness_lock_pinned">Fixado pela trava de rigor</string>
+    <string name="strictness_lock_start_confirm">Iniciar</string>
     <string name="visual_blocking_explanation">Esse recurso analisa imagens, gifs e vídeos exibidos na tela dos apps selecionados usando um modelo de machine learning que roda inteiramente no seu dispositivo — nada é enviado para fora dele. Quando um conteúdo das categorias selecionadas é detectado acima da sensibilidade escolhida, o app é fechado automaticamente.</string>
     <string name="visual_blocking_enable">Ativar bloqueio visual</string>
     <string name="visual_blocking_requires_accessibility">Requer que o bloqueio avançado (serviço de acessibilidade) esteja ativado</string>

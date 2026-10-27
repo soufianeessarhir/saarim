@@ -1,5 +1,6 @@
 package com.sarim.app.screens.common
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,8 +33,10 @@ import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.NoPhotography
 import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.PhonelinkErase
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -57,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -141,6 +145,7 @@ fun RecoveryCodeWizard(
                 )
                 STEP_STORE -> StoreStep(
                     replacing = replacing,
+                    code = code,
                     stored = stored,
                     onStoredChange = { stored = it }
                 )
@@ -399,7 +404,14 @@ private fun ConfirmStep(code: String, typed: String, onTypedChange: (String) -> 
 }
 
 @Composable
-private fun StoreStep(replacing: Boolean, stored: Boolean, onStoredChange: (Boolean) -> Unit) {
+private fun StoreStep(
+    replacing: Boolean,
+    code: String,
+    stored: Boolean,
+    onStoredChange: (Boolean) -> Unit
+) {
+    val context = LocalContext.current
+
     StepHeader(
         icon = Icons.Outlined.Inventory2,
         title = stringResource(R.string.recovery_wizard_store_title),
@@ -410,10 +422,33 @@ private fun StoreStep(replacing: Boolean, stored: Boolean, onStoredChange: (Bool
         TipRow(Icons.Outlined.PhonelinkErase, stringResource(R.string.recovery_wizard_store_tip_away))
         TipRow(Icons.Outlined.Search, stringResource(R.string.recovery_wizard_store_tip_findable))
         TipRow(Icons.Outlined.NoPhotography, stringResource(R.string.recovery_wizard_store_tip_digital))
+        TipRow(Icons.Outlined.People, stringResource(R.string.recovery_wizard_store_tip_partner))
         if (replacing) {
             TipRow(Icons.Outlined.DeleteOutline, stringResource(R.string.recovery_wizard_store_tip_old))
         }
     }
+    Spacer(Modifier.height(16.dp))
+
+    // The strongest version of "store it somewhere you can't reach" is not keeping it at all:
+    // whoever holds the code holds the only way back into these settings, so give the user a
+    // one-tap way to hand it over. Best-effort — a device with no share target simply does nothing.
+    FilledTonalButton(
+        onClick = {
+            val share = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, context.getString(R.string.partner_share_message, code))
+            }
+            val chooser = Intent.createChooser(share, context.getString(R.string.partner_share_chooser))
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            runCatching { context.startActivity(chooser) }
+        },
+        modifier = Modifier.height(52.dp)
+    ) {
+        Icon(Icons.Outlined.Share, contentDescription = null)
+        Spacer(Modifier.width(8.dp))
+        Text(stringResource(R.string.partner_share_button))
+    }
+
     Spacer(Modifier.height(16.dp))
     CheckRow(
         checked = stored,

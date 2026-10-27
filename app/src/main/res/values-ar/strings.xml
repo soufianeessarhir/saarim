@@ -24,8 +24,12 @@
     <string name="recovery_wizard_store_title">خزّنه في مكان آمن</string>
     <string name="recovery_wizard_store_text">الورقة هي الآن النسخة الوحيدة من رمزك. اختر بعناية أين تحفظها.</string>
     <string name="recovery_wizard_store_tip_away">بعيدًا عن هاتفك، في مكان لن تصل إليه في لحظة الاندفاع</string>
-    <string name="recovery_wizard_store_tip_findable">سهل الم encontرة عندما تحتاجه حقًا — درج، ملف، أو مع شخص تثق به</string>
+    <string name="recovery_wizard_store_tip_findable">سهل العثور عليه عندما تحتاجه حقًا — درج، ملف، أو مع شخص تثق به</string>
     <string name="recovery_wizard_store_tip_digital">لا صور أو نسخ رقمية</string>
+    <string name="recovery_wizard_store_tip_partner">والأفضل من ذلك: سلّمه لشريك محاسبة يحتفظ به نيابة عنك</string>
+    <string name="partner_share_button">إرسال إلى شريك المحاسبة</string>
+    <string name="partner_share_chooser">مشاركة رمز الاستعادة</string>
+    <string name="partner_share_message">رمز الاستعادة في Sarim هو %1$s. احتفظ به في مكان لا أستطيع الوصول إليه — أحتاجه لتغيير قيودي، ولا أريد أن أتمكن من الوصول إليه في لحظة الاندفاع.</string>
     <string name="recovery_wizard_store_tip_old">ألقِ الورقة التي تحمل الرمز القديم</string>
     <string name="recovery_wizard_stored">خزّنت الورقة في مكان آمن</string>
     <string name="restrictions">القيود</string>
@@ -183,6 +187,8 @@
     <string name="browser_restrictions_desc">إدارة صلاحيات المتصفح والمواقع المحظورة</string>
     <string name="block_torrents">حجب تطبيقات التورنت</string>
     <string name="block_torrents_desc">يحجز تلقائيًا تطبيقات التورنت الجديدة</string>
+    <string name="block_tor">حجب Tor / Orbot</string>
+    <string name="block_tor_desc">يحجز تلقائيًا تطبيقات Tor و Orbot</string>
     <string name="apk_update_button">تحديث التطبيقات</string>
     <string name="apk_update_intro_title">تحديث التطبيقات عبر APK</string>
     <string name="apk_update_intro_text">اختر ملف APK لتطبيق مثبَّت مسبقًا على هذا الهاتف لتحديثه.\n\nيُسمح فقط بالتحديثات: تبقى التطبيقات الجديدة محظورة.</string>
@@ -407,6 +413,20 @@
 
     <string name="visual_blocking">الحجب البصري</string>
     <string name="visual_blocking_desc">اكتشاف محتوى غير لائق من صور وGIFs ومقاطع فيديو بواسطة نموذج ML على الجهاز</string>
+    <string name="strictness_lock">قفل الصرامة</string>
+    <string name="strictness_lock_desc">يُبقي حجب المحتوى المخصص للبالغين مفعّلًا لمدة لا يمكنك تقصيرها</string>
+    <string name="strictness_lock_locked_title">قفل الصرامة مفعّل</string>
+    <string name="strictness_lock_remaining">بقي %1$d يومًا</string>
+    <string name="strictness_lock_ended">انتهت فترة الصرامة — يمكن تغيير هذه الإعدادات مرة أخرى.</string>
+    <string name="strictness_lock_start">بدء قفل الصرامة</string>
+    <string name="strictness_lock_duration_title">كم يستمر؟</string>
+    <string name="strictness_lock_duration_text">اختر مدة لا تقل عن %1$d يومًا. بعد تشغيله لا يمكن تقصيره: رمز الاستعادة لن يُنهيه، ولن يؤدي إيقاف هذه الإعدادات إلى إنهائه. السبيل الوحيد للخروج قبل انتهائه هو الإزالة القسرية بعد 48 ساعة.</string>
+    <string name="strictness_lock_days_label">أيام</string>
+    <string name="strictness_lock_days_invalid">%1$d يومًا على الأقل</string>
+    <string name="strictness_lock_what_changes">تشغيل القفل يفعّل الحجب البصري، ويفرض فئات البالغين، ويشغّل حجب Tor. وحتى انتهاء المدة لا يمكن إيقاف أيٍّ منها.</string>
+    <string name="strictness_lock_requires_apps">اختر تطبيقًا واحدًا على الأقل للمراقبة أولًا.</string>
+    <string name="strictness_lock_pinned">مثبَّت بقفل الصرامة</string>
+    <string name="strictness_lock_start_confirm">بدء</string>
     <string name="visual_blocking_explanation">هذه الميزة تفحص الصور وGIFs والمقاطع المرئية المعروضة على الشاشة في التطبيقات المختارة باستخدام نموذج تعلم آلي يعمل بالكامل على جهازك — لا شيء يُرسل أو يرفع إلى أي مكان. عند اكتشاف محتوى يطابق الفئات المختارة فوق حد الحساسية المختار، يُغلق التطبيق تلقائيًا.</string>
     <string name="visual_blocking_enable">تفعيل الحجب البصري</string>
     <string name="visual_blocking_requires_accessibility">يتطلب الحجب المتقدم (خدمة الوصول إلى الشاشة) أن يكون مفعَّلًا</string>

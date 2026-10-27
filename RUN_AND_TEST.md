@@ -26,7 +26,7 @@ JDK 21 is pinned in `gradle.properties` (`org.gradle.java.home`); plain `./gradl
 ./gradlew :app:testDebugUnitTest
 ```
 
-59 tests in 8 suites — SecurityManager (24: recovery code, session, impulse block incl. clock-tamper resistance, config), LocaleUtils (9: the Arabic default, wrapped Arabic/RTL resources, the system per-app pick, a choice made in Config), ColorFilterScope (7), FocusCycle (6), FocusSchedule (6), OnboardingState (4: the one-time flag default/persist, 5 slides, the owner-setup CTA route), StringsParity (2: en/ar/pt key parity, full 531-key set), ExampleUnitTest (1). Results land in `app/build/reports/tests/`.
+91 tests in 11 suites — SecurityManager (27: recovery code, session, impulse block incl. clock-tamper resistance, config, the Tor and torrent suspension ledgers staying separate), StrictnessLock (15: duration floor of 90 days, release only on expiry, clock-tamper resistance incl. reboot + date-rewind, the pinned-settings enforcement), TorBlock (8: official ids, the org.torproject.* publisher id, rebuilt/rebranded clients caught by identity match, label-only detection, unrelated apps not caught), TorrentBlock (6: magnet and `.torrent` handlers, cache invalidation after an install, unrelated apps not caught, independence from Tor detection), LocaleUtils (9: the Arabic default, wrapped Arabic/RTL resources, the system per-app pick, a choice made in Config), ColorFilterScope (7), FocusCycle (6), FocusSchedule (6), OnboardingState (4: the one-time flag default/persist, 5 slides, the owner-setup CTA route), StringsParity (2: en/ar/pt key parity, full 551-key set), ExampleUnitTest (1). Results land in `app/build/reports/tests/`.
 
 ### Play Store build
 
@@ -107,6 +107,10 @@ Sarim is "hard to bypass" because it takes over system protections. Every step i
 | 20 | Airplane mode / reboot while any protection is active | All state lives in `SharedPreferences` + Device Owner; nothing is lost and nothing needs network |
 | 21 | Config tab → *How it works* | The carousel re-opens at any time, from any language, even after the first-run flag is set |
 | 22 | Launch a `-PplayStoreBuild=true` APK and open the lock screen | The APK-update entry is absent; with the normal build it shows when unknown-source installs are restricted |
+| 23 | Config tab → *Block Tor / Orbot* on, with Tor Browser (or Orbot) **already installed** | It is suspended immediately, without reinstalling it; turning the switch off releases exactly the apps it suspended. Installing a Tor APK under a different package id (a rebuild) is also caught |
+| 24 | Visual blocking → *Start the strictness lock*, pick a period, then try to turn visual blocking off | The switch, the categories, the sensitivity and the monitored-app picker are frozen; clearing the pref by any route is undone by the service; the recovery code does **not** release the lock — only expiry or the 48-hour forced removal does. The lock cannot be started with no monitored app or with accessibility off |
+| 25 | Config tab → *Block Torrent apps* on, with a torrent client (e.g. LibreTorrent) **already installed** | It is suspended without reinstalling; turning the switch off releases it. A client installed while the switch is already on is released when it's switched off — not left suspended with no way back |
+| 26 | With both Tor and torrent blocks on, and one app handling both (e.g. a client with magnet and onion support), turn one off | The app stays suspended while the other block still holds it, and is released only when both are off |
 
 ### Manual device sanity (battery, not just correctness)
 
@@ -214,8 +218,8 @@ Disclaimers aside, what remains is a fast loop for logic, resources and policy: 
 ## 5. What "everything works" means here (source-level verification already done)
 
 - `:app:compileDebugKotlin` / `assembleDebug`: exit 0, APK produced.
-- `:app:testDebugUnitTest`: 59/59 pass (8 suites), including the app-language tests that run on both sides of the API 33 split and the new onboarding-test suites.
+- `:app:testDebugUnitTest`: 91/91 pass (11 suites), including the app-language tests that run on both sides of the API 33 split and the Tor-detection, torrent-detection and strictness-lock suites.
 - The Arabic default is applied in `SarimApplication.onCreate`; on API 30–32 every screen is re-wrapped with that language in `LocalizedActivity`, on 33+ the framework's per-app language does it.
-- `processDebugResources`: en/pt/ar all present (531 keys matching, placeholders aligned), and `StringsParityTest` now enforces the key parity that used to be checked by hand.
+- `processDebugResources`: en/pt/ar all present (551 keys matching, placeholders aligned), and `StringsParityTest` now enforces the key parity that used to be checked by hand.
 - Digit-scanned all three language files for stray CJK/Hangul/Devanagari/fullwidth characters: none remain.
 - Full integration tests on a physical device are **not runnable from this machine** (no attached device); the instrumented `ExampleInstrumentedTest` and a real phone still serve as the final gate — use §2 and §3 above, or §4 in Waydroid.
