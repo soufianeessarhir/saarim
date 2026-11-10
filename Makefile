@@ -89,9 +89,9 @@ launch: ## Start Sarim on the device
 owner: ## Register Sarim as Device Owner (needs one user, no account, no other owner)
 	@echo "==> Checking eligibility, then dpm set-device-owner $(ADMIN)"
 	@$(DSH) sh -c 'set -e; \
-		owners=$$(dpm list-owners 2>/dev/null); \
-		if [ -n "$$owners" ]; then \
-			echo "!! a device owner is already registered:"; echo "$$owners"; \
+		owner=$$(dumpsys device_policy 2>/dev/null | grep -m1 "^  Device Owner:"); \
+		if [ -n "$$owner" ]; then \
+			echo "!! a device owner is already registered:"; echo "$$owner"; \
 			echo "   wipe the container with: make waydroid-reset"; exit 1; \
 		fi; \
 		users=$$(pm list users | grep -c UserInfo); \
@@ -102,7 +102,7 @@ owner: ## Register Sarim as Device Owner (needs one user, no account, no other o
 			echo "   Google account can never accept a device owner)"; exit 1; \
 		fi; \
 		dpm set-device-owner $(ADMIN); \
-		dpm list-owners'
+		dumpsys device_policy 2>/dev/null | grep -A2 "^  Device Owner:"'
 
 privileges: ## Enable the accessibility service and grant the system permissions
 	@$(DSH) sh -c 'settings put secure enabled_accessibility_services $(ACCESSIBILITY); \
@@ -113,7 +113,7 @@ privileges: ## Enable the accessibility service and grant the system permissions
 		dumpsys package $(APP_ID) | grep -E "android.permission.WRITE_SECURE_SETTINGS: granted=true"'
 
 status: ## Show owner registration, accessibility and app state
-	@$(DSH) sh -c 'echo "== device owner =="; dpm list-owners 2>/dev/null; \
+	@$(DSH) sh -c 'echo "== device owner =="; dumpsys device_policy 2>/dev/null | grep -A2 "^  Device Owner:"; \
 		echo "== accessibility service =="; settings get secure enabled_accessibility_services; \
 		echo "== app =="; \
 		dumpsys package $(APP_ID) 2>/dev/null \

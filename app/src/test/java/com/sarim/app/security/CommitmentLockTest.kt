@@ -15,7 +15,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Unit tests for the commitment: the duration rules (90-day floor, permanent), and the
+ * Unit tests for the commitment: the duration rules (90-day floor, permanent, regular), and the
  * clock-tampering resistance of its deadline.
  *
  * The remaining time is recomputed from preferences rather than stored, so these tests rewind the
@@ -124,8 +124,29 @@ class CommitmentLockTest {
     }
 
     @Test
-    fun forced_removal_is_not_offered_for_a_permanent_commitment() {
+    fun regular_setup_keeps_protection_but_not_a_commitment() {
+        CommitmentLock.start(context, 0)
+
+        assertTrue(CommitmentLock.hasStarted(context))
+        assertTrue(CommitmentLock.isRegular(context))
+        assertFalse(CommitmentLock.isPermanent(context))
+        assertFalse(CommitmentLock.isLocked(context))
+        assertEquals(0L, CommitmentLock.remainingMillis(context))
+        assertEquals(0L, CommitmentLock.endTimeMillis(context))
+        assertEquals(0, CommitmentLock.durationDays(context))
+
+        // The choice is recorded like any other: it cannot later be turned into a commitment.
+        CommitmentLock.start(context, 90)
+        assertTrue(CommitmentLock.isRegular(context))
+    }
+
+    @Test
+    fun forced_removal_is_not_offered_for_a_permanent_or_regular_setup() {
         CommitmentLock.start(context, null)
+        assertFalse(SecurityManager.canStartForcedRemoval(context))
+
+        securityPrefs.edit { clear() }
+        CommitmentLock.start(context, 0)
         assertFalse(SecurityManager.canStartForcedRemoval(context))
 
         securityPrefs.edit { clear() }
@@ -231,21 +252,10 @@ class CommitmentLockTest {
     fun enforce_re_asserts_protection_even_without_a_running_commitment() {
         // Nothing here is optional: the layers are on from the first launch, not from the moment
         // a commitment starts.
-        blockingPrefs.edit {
-            putBoolean(VisualBlockingSettings.KEY_ENABLED, false)
-            putStringSet(VisualBlockingSettings.KEY_CATEGORIES, emptySet())
-            putBoolean(VisualBlockingSettings.KEY_SUSPEND_ENABLED, false)
-        }
         securityPrefs.edit { putBoolean("block_tor", false) }
 
         assertTrue(CommitmentLock.enforce(context))
 
-        assertTrue(blockingPrefs.getBoolean(VisualBlockingSettings.KEY_ENABLED, false))
-        assertTrue(blockingPrefs.getBoolean(VisualBlockingSettings.KEY_SUSPEND_ENABLED, false))
-        assertTrue(
-            blockingPrefs.getStringSet(VisualBlockingSettings.KEY_CATEGORIES, emptySet())!!
-                .containsAll(VisualBlockingSettings.DEFAULT_CATEGORIES)
-        )
         assertTrue(securityPrefs.getBoolean("block_tor", false))
     }
 
@@ -262,23 +272,10 @@ class CommitmentLockTest {
     }
 
     @Test
-    fun enforce_keeps_categories_the_detector_additionally_supports() {
-        blockingPrefs.edit {
-            putStringSet(VisualBlockingSettings.KEY_CATEGORIES, setOf("drawings"))
-        }
-
-        CommitmentLock.enforce(context)
-
-        val categories = blockingPrefs.getStringSet(VisualBlockingSettings.KEY_CATEGORIES, emptySet())!!
-        assertTrue(categories.contains("drawings"))
-        assertTrue(categories.containsAll(VisualBlockingSettings.DEFAULT_CATEGORIES))
-    }
-
-    @Test
     fun enforce_is_idempotent_so_it_cannot_loop_from_a_prefs_listener() {
         CommitmentLock.start(context, 90)
         // Starting a commitment already enforces; break one setting to give the pass work to do.
-        blockingPrefs.edit { putBoolean(VisualBlockingSettings.KEY_ENABLED, false) }
+        securityPrefs.edit { putBoolean("block_tor", false) }
 
         assertTrue("first pass has fixing to do", CommitmentLock.enforce(context))
         assertFalse("second pass must be a no-op", CommitmentLock.enforce(context))

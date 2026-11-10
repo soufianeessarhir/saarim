@@ -72,6 +72,7 @@ fun LockScreen(onAuthenticated: () -> Unit) {
     val biometricError = stringResource(R.string.biometric_error)
     val commitmentRemaining = remember { CommitmentLock.remainingMillis(context) }
     val commitmentPermanent = remember { CommitmentLock.isPermanent(context) }
+    val commitmentRegular = remember { CommitmentLock.isRegular(context) }
 
     // Updating apps needs no authentication: only APKs of apps that are already installed go through.
     // Without the unknown sources restriction APKs install normally, so the updater is not offered.
@@ -188,6 +189,7 @@ fun LockScreen(onAuthenticated: () -> Unit) {
             ) {
                 CommitmentBanner(
                     permanent = commitmentPermanent,
+                    regular = commitmentRegular,
                     remaining = commitmentRemaining
                 )
 
@@ -258,7 +260,7 @@ fun LockScreen(onAuthenticated: () -> Unit) {
 }
 
 @Composable
-private fun CommitmentBanner(permanent: Boolean, remaining: Long) {
+private fun CommitmentBanner(permanent: Boolean, regular: Boolean, remaining: Long) {
     Card(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
@@ -276,15 +278,20 @@ private fun CommitmentBanner(permanent: Boolean, remaining: Long) {
             Icon(Icons.Outlined.HourglassBottom, contentDescription = null, modifier = Modifier.size(32.dp))
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                stringResource(R.string.commitment_active_title),
+                stringResource(
+                    if (regular) R.string.commitment_title else R.string.commitment_active_title
+                ),
                 style = MaterialTheme.typography.titleSmall
             )
             Text(
-                text = if (permanent || remaining == Long.MAX_VALUE) {
-                    stringResource(R.string.commitment_remaining_permanent)
-                } else {
-                    val daysLeft = (remaining / (24L * 60L * 60L * 1000L)).toInt()
-                    pluralStringResource(R.plurals.commitment_remaining_days, daysLeft, daysLeft)
+                text = when {
+                    regular -> stringResource(R.string.commitment_regular_status)
+                    permanent || remaining == Long.MAX_VALUE ->
+                        stringResource(R.string.commitment_remaining_permanent)
+                    else -> {
+                        val daysLeft = (remaining / (24L * 60L * 60L * 1000L)).toInt()
+                        pluralStringResource(R.plurals.commitment_remaining_days, daysLeft, daysLeft)
+                    }
                 },
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold

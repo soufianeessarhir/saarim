@@ -121,19 +121,11 @@ class SecurityManagerTest {
     // ------------------------------------------------------------------ access challenges
 
     @Test
-    fun accessChallenges_empty_stores_and_reads_back() {
-        SecurityManager.setAccessChallenges(context, emptySet())
-        assertEquals(emptyList<SecurityManager.ChallengeType>(), SecurityManager.getAccessChallenges(context))
-    }
-
-    @Test
-    fun accessChallenges_roundTrip_sorted_by_ordinal() {
-        SecurityManager.setAccessChallenges(
-            context,
-            setOf(SecurityManager.ChallengeType.WORDS, SecurityManager.ChallengeType.MATH)
-        )
+    fun accessChallenges_default_to_words() {
+        context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE).edit()
+            .remove("access_challenges").commit()
         assertEquals(
-            listOf(SecurityManager.ChallengeType.MATH, SecurityManager.ChallengeType.WORDS),
+            listOf(SecurityManager.ChallengeType.WORDS),
             SecurityManager.getAccessChallenges(context)
         )
     }
@@ -162,9 +154,6 @@ class SecurityManagerTest {
 
     @Test
     fun mandatoryProtection_is_always_on_and_cannot_be_switched_off() {
-        assertTrue(MandatoryProtection.isBlockTorEnabled())
-        assertTrue(MandatoryProtection.isBlockTorrentsEnabled())
-
         // A preference left behind by an older version must not switch either block off.
         context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE).edit()
             .putBoolean(MandatoryProtection.KEY_BLOCK_TOR, false)
@@ -178,78 +167,20 @@ class SecurityManagerTest {
         assertTrue(prefs.getBoolean(MandatoryProtection.KEY_BLOCK_TORRENTS, false))
     }
 
-    @Test
-    fun configToggles_torSuspendedPackages_roundTrip() {
-        // Must default to empty, or the first service start would try to release nothing and
-        // turning the toggle off would have no record of what to let go.
-        context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE).edit()
-            .remove("tor_suspended_packages").commit()
-        assertEquals(emptySet<String>(), SecurityManager.getTorSuspendedPackages(context))
-
-        SecurityManager.setTorSuspendedPackages(context, setOf("org.torproject.torbrowser"))
-        assertEquals(
-            setOf("org.torproject.torbrowser"),
-            SecurityManager.getTorSuspendedPackages(context)
-        )
-
-        SecurityManager.setTorSuspendedPackages(context, emptySet())
-        assertEquals(emptySet<String>(), SecurityManager.getTorSuspendedPackages(context))
-    }
-
-    @Test
-    fun configToggles_torrentSuspendedPackages_roundTrip_andStaySeparateFromTor() {
-        context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE).edit()
-            .remove("torrent_suspended_packages").commit()
-        assertEquals(emptySet<String>(), SecurityManager.getTorrentSuspendedPackages(context))
-
-        SecurityManager.setTorrentSuspendedPackages(context, setOf("com.example.torrent"))
-        assertEquals(
-            setOf("com.example.torrent"),
-            SecurityManager.getTorrentSuspendedPackages(context)
-        )
-
-        // The two features track their own suspensions, so turning one off can't release the
-        // other's apps.
-        assertEquals(emptySet<String>(), SecurityManager.getTorSuspendedPackages(context))
-
-        SecurityManager.setTorrentSuspendedPackages(context, emptySet())
-        assertEquals(emptySet<String>(), SecurityManager.getTorrentSuspendedPackages(context))
-    }
-
     // ------------------------------------------------------------------ challenge config
 
     @Test
-    fun challenge_tetrisMinutes_clamped() {
-        SecurityManager.setTetrisMinutes(context, 99)
-        assertEquals(SecurityManager.TETRIS_MAX_MINUTES, SecurityManager.getTetrisMinutes(context))
-        SecurityManager.setTetrisMinutes(context, 0)
-        assertEquals(SecurityManager.TETRIS_MIN_MINUTES, SecurityManager.getTetrisMinutes(context))
-    }
-
-    @Test
-    fun challenge_readingSource_roundTrip_and_default() {
+    fun challenge_readingSource_defaults_to_bible() {
         context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE).edit()
             .remove("reading_source").commit()
         assertEquals(SecurityManager.ReadingSource.BIBLE, SecurityManager.getReadingSource(context))
-
-        SecurityManager.setReadingSource(context, SecurityManager.ReadingSource.QURAN)
-        assertEquals(SecurityManager.ReadingSource.QURAN, SecurityManager.getReadingSource(context))
     }
 
     @Test
-    fun challenge_readingCount_clamped_at_minimum() {
-        SecurityManager.setReadingCount(context, 0)
-        assertEquals(SecurityManager.READING_MIN_COUNT, SecurityManager.getReadingCount(context))
-    }
-
-    @Test
-    fun challenge_customReadingPassages_roundTrip() {
-        val passages = listOf(
-            com.sarim.app.data.ReadingPassage("first text", "mine"),
-            com.sarim.app.data.ReadingPassage("second text", "")
-        )
-        SecurityManager.setCustomReadingPassages(context, passages)
-        assertEquals(passages, SecurityManager.getCustomReadingPassages(context))
+    fun challenge_readingCount_defaults_to_five() {
+        context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE).edit()
+            .remove("reading_count").commit()
+        assertEquals(SecurityManager.READING_DEFAULT_COUNT, SecurityManager.getReadingCount(context))
     }
 
     @Test

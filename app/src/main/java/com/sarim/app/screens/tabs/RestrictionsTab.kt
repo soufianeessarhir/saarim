@@ -46,6 +46,13 @@ fun RestrictionsTab(
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
             ) {
+                Text(
+                    stringResource(R.string.mandatory_restrictions_summary),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
                 RestrictionAccordion(
                     title = stringResource(R.string.recommended_configs),
                     keys = restrictionsViewModel.recommendedKeys,
@@ -184,7 +191,6 @@ private fun RestrictionAccordion(
                             value = key,
                             checked = viewModel.draftRestrictions[key] == true,
                             isApplied = viewModel.appliedRestrictions[key] == true,
-                            isMandatory = viewModel.isMandatory(key),
                             onCheckedChange = { viewModel.toggleDraft(key, it) }
                         )
                     }
@@ -200,20 +206,18 @@ fun RestrictionItem(
     value: String,
     checked: Boolean,
     isApplied: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    isMandatory: Boolean = false
+    onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = !isMandatory) { onCheckedChange(!checked) }
+            .clickable { onCheckedChange(!checked) }
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(
             checked = checked,
-            onCheckedChange = onCheckedChange,
-            enabled = !isMandatory
+            onCheckedChange = onCheckedChange
         )
         Column(modifier = Modifier.weight(1f).padding(start = 8.dp)) {
             Text(
@@ -226,20 +230,7 @@ fun RestrictionItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        if (isMandatory) {
-            Surface(
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                shape = MaterialTheme.shapes.extraSmall,
-                modifier = Modifier.padding(start = 8.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.always_on),
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-        } else if (isApplied) {
+        if (isApplied) {
             Surface(
                 color = MaterialTheme.colorScheme.primaryContainer,
                 shape = MaterialTheme.shapes.extraSmall,

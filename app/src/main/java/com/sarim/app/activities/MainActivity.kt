@@ -54,7 +54,10 @@ class MainActivity : LocalizedActivity() {
         setContent {
             SarimTheme {
                 val viewModel: DeviceOwnerViewModel = viewModel()
-                viewModel.addShizukuListener()
+                DisposableEffect(Unit) {
+                    viewModel.addShizukuListener()
+                    onDispose { viewModel.removeShizukuListener() }
+                }
                 val navViewModel: NavigationViewModel = viewModel()
 
                 var onboardingCompleted by remember {

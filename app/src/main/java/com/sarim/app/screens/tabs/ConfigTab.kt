@@ -9,7 +9,6 @@ import androidx.compose.material.icons.outlined.Accessibility
 import androidx.compose.material.icons.outlined.Adb
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Dns
-import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.ImageSearch
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Keyboard
@@ -83,16 +82,25 @@ fun ConfigTab(
         mutableLongStateOf(SecurityManager.getForcedRemovalRemainingTime(context))
     }
     val permanent = CommitmentLock.isPermanent(context)
+    val regular = CommitmentLock.isRegular(context)
     val commitmentRemaining = CommitmentLock.remainingMillis(context)
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
                 ListItem(
-                    headlineContent = { Text(stringResource(R.string.commitment_active_title)) },
+                    headlineContent = {
+                        Text(
+                            stringResource(
+                                if (regular) R.string.commitment_title
+                                else R.string.commitment_active_title
+                            )
+                        )
+                    },
                     supportingContent = {
                         Text(
                             when {
+                                regular -> stringResource(R.string.commitment_regular_status)
                                 permanent -> stringResource(R.string.commitment_remaining_permanent)
                                 commitmentRemaining > 0L -> {
                                     val daysLeft = (commitmentRemaining / (24L * 60L * 60L * 1000L)).toInt()
@@ -207,27 +215,9 @@ fun ConfigTab(
             item {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.system_restrictions)) },
-                    supportingContent = { Text(stringResource(R.string.always_on_desc)) },
+                    supportingContent = { Text(stringResource(R.string.system_restrictions_desc)) },
                     leadingContent = { Icon(Icons.Outlined.Block, "") },
                     modifier = Modifier.clickable { navViewModel.navigateTo("system_restrictions") }
-                )
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.block_torrents)) },
-                    supportingContent = { Text(stringResource(R.string.always_on_desc)) },
-                    leadingContent = { Icon(Icons.Outlined.FileDownload, "") },
-                    trailingContent = { Switch(checked = true, enabled = false, onCheckedChange = null) }
-                )
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.block_tor)) },
-                    supportingContent = { Text(stringResource(R.string.always_on_desc)) },
-                    leadingContent = { Icon(Icons.Outlined.Security, "") },
-                    trailingContent = { Switch(checked = true, enabled = false, onCheckedChange = null) }
                 )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
             }
@@ -270,9 +260,9 @@ fun ConfigTab(
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
             }
 
-            // A permanent commitment deliberately has no way out, so the escape hatch isn't even
-            // listed for one.
-            if (!permanent) {
+            // A permanent commitment has no way out, and a regular setup has nothing to escape,
+            // so the escape hatch isn't listed for either.
+            if (SecurityManager.canStartForcedRemoval(context)) {
                 item {
                     val forcedRemovalText = when {
                         forcedRemovalRemaining > 0 -> {
@@ -305,16 +295,6 @@ fun ConfigTab(
                                 else -> showCancelForcedRemovalDialog = true
                             }
                         }
-                    )
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                }
-            } else {
-                item {
-                    ListItem(
-                        headlineContent = { Text(stringResource(R.string.forced_removal)) },
-                        supportingContent = { Text(stringResource(R.string.commitment_forced_removal_disabled)) },
-                        leadingContent = { Icon(Icons.Outlined.LockClock, "") },
-                        trailingContent = { Switch(checked = false, enabled = false, onCheckedChange = null) }
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 }

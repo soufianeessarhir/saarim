@@ -73,6 +73,7 @@ fun ProtectionTab(
         item {
             CommitmentCard(
                 permanent = CommitmentLock.isPermanent(context),
+                regular = CommitmentLock.isRegular(context),
                 remaining = remaining,
                 started = CommitmentLock.hasStarted(context)
             )
@@ -192,7 +193,7 @@ fun ProtectionTab(
 }
 
 @Composable
-private fun CommitmentCard(permanent: Boolean, remaining: Long, started: Boolean) {
+private fun CommitmentCard(permanent: Boolean, regular: Boolean, remaining: Long, started: Boolean) {
     val active = started && remaining > 0L
     Card(
         modifier = Modifier
@@ -206,13 +207,16 @@ private fun CommitmentCard(permanent: Boolean, remaining: Long, started: Boolean
     ) {
         Column(Modifier.padding(20.dp)) {
             Text(
-                stringResource(R.string.commitment_active_title),
+                stringResource(
+                    if (regular) R.string.commitment_title else R.string.commitment_active_title
+                ),
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 text = when {
                     !started -> stringResource(R.string.commitment_setup_title)
+                    regular -> stringResource(R.string.commitment_regular_status)
                     permanent -> stringResource(R.string.commitment_remaining_permanent)
                     active -> {
                         val daysLeft = (remaining / (24L * 60L * 60L * 1000L)).toInt()
@@ -225,7 +229,10 @@ private fun CommitmentCard(permanent: Boolean, remaining: Long, started: Boolean
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                stringResource(R.string.commitment_pinned_desc),
+                stringResource(
+                    if (regular) R.string.commitment_regular_desc
+                    else R.string.commitment_pinned_desc
+                ),
                 style = MaterialTheme.typography.bodySmall
             )
         }

@@ -3,8 +3,8 @@
 Sarim does one job: keep pornography and adult content off an Android phone, and keep the way back
 in closed. Every other kind of self-control feature — focus timers, app time limits, usage
 warnings, app groups, colour filters, an impulse button — was removed on purpose. What is left is
-a small number of layers that are all on from the first launch, plus a commitment that freezes them
-for a period the user cannot shorten.
+a small number of layers that are all on from the first launch, plus an optional commitment that
+freezes them for a period the user cannot shorten.
 
 This document describes the app as it is built: what each layer does, its defaults, what it
 needs, and exactly which actions are gated by the recovery code and which by the commitment.
@@ -27,9 +27,9 @@ an *existing* protection may be tuned or weakened. Concretely:
 - **The commitment overrides the session.** While a commitment is running, `RecoveryGate` refuses
   every gated change, even with the code, except actions that only add protection
   (`strengtheningAction = true`): enabling advanced blocking, blocking an app, suspending an app.
-- **Tor/Orbot and torrents are on by default and cannot be cancelled.** The toggles still render on
-  the Config tab for visibility, but both return `true` from a no-setter getter and `enforce()`
-  puts them back whenever they are out of line.
+- **Tor/Orbot and torrents are on by default and cannot be cancelled.** They are shown as status
+  rows on the Protection tab; Config has no toggle for either, and `enforce()` keeps the backing
+  preferences true.
 - **Any source that could fetch pornography is blocked by default and not cancellable.** That covers
   the built-in adult-site browser list, forced SafeSearch, the three filtering DNS hosts, Tor and
   torrents, the developer/unsafe-source routes, and — on the adult side only — the commit lock
@@ -45,13 +45,8 @@ idempotent in both directions — it writes only what is out of line and returns
 write anything — so it runs on every app launch (`SarimApplication`), on every accessibility
 service start, on `CommitmentLock.enforce`, and from the preference listener in the service.
 
-There are no "off" switches for the layers below. Two of them still have preferences, kept so the
-service reads a truthful value; `enforce()` puts them back:
-
-```kotlin
-fun isBlockTorEnabled(): Boolean = true        // no setter
-fun isBlockTorrentsEnabled(): Boolean = true   // no setter
-```
+There are no "off" switches for the layers below. Tor and torrents still have preference keys so
+the service reads a truthful value; `enforce()` puts them back and there is no UI setter.
 
 ---
 
@@ -60,9 +55,9 @@ fun isBlockTorrentsEnabled(): Boolean = true   // no setter
 The app is unusable until three things exist, in this order:
 
 1. **A recovery code** — generated in-app, written on paper, handed to someone else if possible.
-2. **The commitment** — how long protection stays locked on.
-3. **Device owner and advanced blocking** — the two Android powers the enforcement relies on,
+2. **Device owner and advanced blocking** — the two Android powers the enforcement relies on,
    granted through [Shizuku](https://shizuku.rikka.app/) and re-checked on every launch.
+3. **The commitment** — Regular (no lock), a timed period, or permanent.
 
 ### 1.1 Device owner
 
@@ -78,8 +73,8 @@ Device owner is what unlocks, at the OS level:
 - `setApplicationHidden` / `setUninstallBlocked` on the Apps screen,
 - `setApplicationRestrictions` — the `URLBlocklist` and `ForceGoogleSafeSearch` policies (§2.3).
 
-Without it the app still runs, but only the accessibility layer works, and the Protection tab
-shows an error card saying the protection is incomplete.
+Without it the first-run gate stops at the owner screen: the commitment and the tabs are not
+reachable, and the Protection tab would show an incomplete-protection card if it could be opened.
 
 ### 1.2 The commitment
 
@@ -87,11 +82,11 @@ shows an error card saying the protection is incomplete.
 
 | | |
 |---|---|
-| Presets | 90, 180, 365, 730 days, or **permanent** |
-| Accepted range | 90 – 3650 days (values below the floor are raised to 90) |
-| Stored as | `security_prefs` → `commitment_start_rtc`, `commitment_start_elapsed`, `commitment_duration_ms` (`-1` = permanent), `commitment_last_seen_rtc` |
+| Presets | **Regular** (no lock), 90, 180, 365, 730 days, or **permanent** |
+| Accepted range | 90 – 3650 days for a timed commitment (values below the floor are raised to 90); `0` selects Regular |
+| Stored as | `security_prefs` → `commitment_start_rtc`, `commitment_start_elapsed`, `commitment_duration_ms` (`-1` = permanent, `-2` = regular), `commitment_last_seen_rtc` |
 | Chosen at | setup, once, before the app opens for the first time |
-| Release | the period running out; or the 48-hour forced removal — **not offered for a permanent commitment** |
+| Release | the period running out; or the 48-hour forced removal — **not offered for a permanent or regular setup** |
 
 `start()` is the only entry point and `hasStarted()` guards it: a running commitment is never
 restarted, shortened or replaced. There is no `stop()` anywhere in the app.
@@ -281,7 +276,8 @@ store page that cannot be fetched) means no action — the visual, word and DNS 
 
 Everything else Android exposes as a `UserManager` policy is listed on the **System restrictions**
 screen, searchable, and can be added on top (factory reset, accounts, Bluetooth, and so on). The
-eight above render as *always on* checkboxes that cannot be unticked.
+eight above are always on and are no longer listed as disabled checkboxes; the screen opens with a
+status line naming them and then lists only the optional policies.
 
 ### 2.8 Advanced blocking (accessibility)
 
@@ -301,13 +297,14 @@ allowed even during a commitment, since it only adds protection.
 
 `activities/LockScreen.kt`.
 
-1. The lock screen opens showing the commitment (days left, or "Permanent"). Nothing else is behind
-   it yet.
+1. The lock screen opens showing the commitment (days left, "Permanent", or "Regular"). Nothing
+   else is behind it yet.
 2. **Access app** → biometric prompt, falling back to the device credential, falling back to no
    check at all if the device has neither configured.
 3. Then the access challenges (`SecurityManager.getAccessChallenges`), run in sequence. The default
-   is **Words**: a random string that has to be typed back exactly, once. Math, Tetris and timed
-   reflective reading can be configured instead.
+   is **Words**: a random string that has to be typed back exactly, once. The current build uses
+   that default; the Math, Tetris and reflective-reading screens remain in the code but there is no
+   settings entry that selects them.
 4. Every challenge screen has *give up*, which returns to the lock screen without opening the app.
 
 APK updates of already-installed apps are offered here without authentication (only when unknown
@@ -336,20 +333,19 @@ are allowed during a commitment; unblocking and un-suspending are not.
 
 | Row | What it does |
 |---|---|
-| Commitment | days left or *Permanent*; read-only |
+| Commitment | days left, *Permanent*, or *Regular (no commitment)*; read-only |
 | Device owner | state badge; opens the Shizuku setup screen |
 | Advanced blocking | accessibility switch (gated; enabling is allowed during a commitment) |
-| Visual blocking | monitored apps, categories (fixed), sensitivity, suspension thresholds |
+| Visual blocking | monitored apps, sensitivity, suspension thresholds; all four categories are fixed |
 | Blocked words | active list, per-app passive lists |
 | Browser restrictions | installed browsers, per-browser suspension, user URL lists, the built-in list |
 | Private DNS | the three filtering resolvers |
-| System restrictions | the mandatory eight plus every other `UserManager` policy |
-| Tor / torrents | always on, shown as disabled switches |
+| System restrictions | a status line for the mandatory eight, plus every optional `UserManager` policy |
 | How it works | the 5-slide onboarding carousel again |
 | Language | English, Portuguese, Arabic (Arabic is the default) |
 | Keyboard | normal or shuffled keypad for the code and the word challenge |
 | Change recovery code | regenerate, gated |
-| Forced removal | 48-hour timer, or "disabled" for a permanent commitment |
+| Forced removal | 48-hour timer; hidden for a permanent or regular setup |
 
 ---
 
@@ -359,8 +355,8 @@ are allowed during a commitment; unblocking and un-suspending are not.
 `elapsedRealtime`, so a reboot does not pause it, capped at 48 hours. When it reaches zero, device
 owner can be removed without the recovery code, and the app can be uninstalled.
 
-It is cancellable before it completes, and it is **not offered at all for a permanent commitment**
-(`canStartForcedRemoval` returns false, and the Settings row renders as disabled). That is the only
+It is cancellable before it completes, and it is **not offered at all for a permanent or regular
+setup** (`canStartForcedRemoval` returns false and the Settings row is hidden). That is the only
 difference between "permanent" and a very long period, and the setup screen says so before the
 choice is made.
 
@@ -376,7 +372,7 @@ session is active), runs through an active session, or never asks at all.
 - language;
 - keyboard layout;
 - opening the onboarding carousel again;
-- the forced-removal timer (when the commitment is not permanent);
+- the forced-removal timer (when the commitment is timed);
 - reading any screen, including the commitment, device-owner state and every current setting.
 
 **Asks once, then runs for 10 minutes (renewable):**
@@ -415,7 +411,7 @@ Removed, along with their screens, models, services, receivers and strings:
 | Colour filters (grayscale, night light, extra dim, inversion) | comfort/sleep feature |
 | Impulse lock and the panic button | replaced by the commitment; its 15–360-minute timer was a time-management tool |
 | Activity blocker (blocking individual screens by class name) | short-video/social-media blocking |
-| Strictness lock | superseded by the commitment: 90 days minimum, permanent option, no optional start |
+| Strictness lock | superseded by the commitment: timed, permanent, or Regular (no lock) |
 
 Also removed with them: `SCHEDULE_EXACT_ALARM`, `USE_EXACT_ALARM`, `FOREGROUND_SERVICE`,
 `FOREGROUND_SERVICE_SPECIAL_USE` and `POST_NOTIFICATIONS` from the manifest, and the
@@ -445,7 +441,7 @@ Also removed with them: `SCHEDULE_EXACT_ALARM`, `USE_EXACT_ALARM`, `FOREGROUND_S
 - blocking/suspending any app (blocking stays available even during a commitment);
 - the recovery code itself;
 - language and keyboard layout (not gated);
-- the 48-hour forced removal timer (not gated; unavailable when permanent).
+- the 48-hour forced removal timer (not gated; unavailable when permanent or regular).
 
 ---
 
@@ -455,8 +451,9 @@ Also removed with them: `SCHEDULE_EXACT_ALARM`, `USE_EXACT_ALARM`, `FOREGROUND_S
 
 | Preference file | Contents |
 |---|---|
-| `security_prefs` | recovery code + session, commitment, forced removal, access challenges, Tor/torrent suspension sets, admin result, shuffle keyboard |
-| `visual_blocking_prefs` | enabled (always true), monitored packages, categories, threshold, suspension settings |
+| `recovery_prefs` | recovery code, forced-removal state |
+| `security_prefs` | commitment, access challenges, Tor/torrent suspension sets, admin result, shuffle keyboard |
+| `visual_blocking_prefs` | monitored packages, threshold, suspension settings |
 | `blocked_words_prefs` | `blocked_words` (built-in ∪ user), `target_packages`, `passive_words_<package>` |
 | `browser_prefs` | `blocked_lists_json` (built-in list + user lists) |
 | `hidden_apps_prefs` | packages to re-hide when they are reinstalled |

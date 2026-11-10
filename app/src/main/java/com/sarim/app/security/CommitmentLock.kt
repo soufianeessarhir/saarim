@@ -10,10 +10,13 @@ import androidx.core.content.edit
  *
  * The floor is [MIN_DURATION_DAYS] days — a commitment that can be shortened to a weekend is not a
  * commitment — and the ceiling is "permanent", for the user who wants the app to be a one-way
- * decision. [start] is the only way in, and there is no `stop`: not the recovery code, not the
- * settings screens, not a preference write. The two ways out are the period running out, or the
- * device-owner 48-hour forced removal, which takes the app off the device entirely and is
- * deliberately unavailable while a permanent commitment is running.
+ * decision. Starting with 0 days records a regular setup instead: the app is still protected, but
+ * the recovery code can change settings normally, exactly as it did before commitments existed.
+ *
+ * [start] is the only way in, and there is no `stop`: not the recovery code, not the settings
+ * screens, not a preference write. For a timed or permanent commitment the only ways out are the
+ * period running out, or the device-owner 48-hour forced removal, which takes the app off the
+ * device entirely and is deliberately unavailable while a permanent commitment is running.
  *
  * Time is measured the way the rest of the app measures a deadline, because this is exactly the
  * kind of thing someone will try to shorten by changing the device date:
@@ -40,6 +43,9 @@ object CommitmentLock {
 
     /** Stored duration of a commitment that never ends. */
     private const val PERMANENT = -1L
+
+    /** Stored duration of a regular setup: protection stays on, but nothing is time-locked. */
+    private const val REGULAR = -2L
 
     /**
      * How far the wall clock may run ahead of the stored watermark before it is rewritten. The
@@ -68,14 +74,19 @@ object CommitmentLock {
     fun clampDurationDays(days: Int): Int = days.coerceIn(MIN_DURATION_DAYS, MAX_DURATION_DAYS)
 
     /**
-     * Starts a commitment of [durationDays], or a permanent one when it is null. A running
-     * commitment is never restarted or shortened — callers get the existing deadline back
-     * instead. Returns the wall-clock instant it runs out, or 0 for a permanent commitment.
+     * Starts a commitment of [durationDays], a permanent one when it is null, or a regular
+     * (unlocked) setup when it is 0. A commitment is never restarted or shortened — callers get
+     * the existing deadline back instead. Returns the wall-clock instant it runs out, or 0 for a
+     * permanent or regular setup.
      */
     fun start(context: Context, durationDays: Int?): Long {
         if (hasStarted(context)) return endTimeMillis(context)
 
-        val duration = durationDays?.let { clampDurationDays(it) * DAY_MS } ?: PERMANENT
+        val duration = when {
+            durationDays == null -> PERMANENT
+            durationDays == 0 -> REGULAR
+            else -> clampDurationDays(durationDays) * DAY_MS
+        }
         val nowRtc = System.currentTimeMillis()
         prefs(context).edit {
             putLong(KEY_START_RTC, nowRtc)
@@ -110,6 +121,10 @@ object CommitmentLock {
     /** True when the commitment never ends. */
     fun isPermanent(context: Context): Boolean =
         hasStarted(context) && prefs(context).getLong(KEY_DURATION_MS, 0L) == PERMANENT
+
+    /** True when setup chose the regular, unlocked path instead of a commitment. */
+    fun isRegular(context: Context): Boolean =
+        hasStarted(context) && prefs(context).getLong(KEY_DURATION_MS, 0L) == REGULAR
 
     fun isLocked(context: Context): Boolean = hasStarted(context) && remainingMillis(context) > 0L
 

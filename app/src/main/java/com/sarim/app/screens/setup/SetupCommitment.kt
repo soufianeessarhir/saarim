@@ -99,15 +99,31 @@ fun SetupCommitment(paddingValues: PaddingValues, onStarted: () -> Unit) {
                     DurationRow(
                         label = pluralStringResource(R.plurals.commitment_duration_days, days, days),
                         selected = selectedDays == days,
-                        onSelect = { selectedDays = days }
+                        onSelect = {
+                            selectedDays = days
+                            acknowledged = false
+                        }
                     )
                 }
+
+                DurationRow(
+                    label = stringResource(R.string.commitment_duration_regular),
+                    supporting = stringResource(R.string.commitment_regular_note),
+                    selected = selectedDays == 0,
+                    onSelect = {
+                        selectedDays = 0
+                        acknowledged = false
+                    }
+                )
 
                 DurationRow(
                     label = stringResource(R.string.commitment_duration_permanent),
                     supporting = stringResource(R.string.commitment_permanent_note),
                     selected = selectedDays == null,
-                    onSelect = { selectedDays = null }
+                    onSelect = {
+                        selectedDays = null
+                        acknowledged = false
+                    }
                 )
             }
         }
@@ -146,7 +162,10 @@ fun SetupCommitment(paddingValues: PaddingValues, onStarted: () -> Unit) {
         ) {
             Checkbox(checked = acknowledged, onCheckedChange = { acknowledged = it })
             Text(
-                stringResource(R.string.commitment_acknowledge),
+                stringResource(
+                    if (selectedDays == 0) R.string.commitment_acknowledge_regular
+                    else R.string.commitment_acknowledge
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(start = 12.dp)
             )
@@ -176,7 +195,10 @@ fun SetupCommitment(paddingValues: PaddingValues, onStarted: () -> Unit) {
                 .height(56.dp)
         ) {
             Text(
-                stringResource(R.string.commitment_start_button),
+                stringResource(
+                    if (selectedDays == 0) R.string.commitment_start_regular
+                    else R.string.commitment_start_button
+                ),
                 style = MaterialTheme.typography.titleMedium
             )
         }

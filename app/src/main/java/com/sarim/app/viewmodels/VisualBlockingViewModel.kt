@@ -27,12 +27,6 @@ class VisualBlockingViewModel : ViewModel() {
     )
         private set
 
-    var selectedCategories by mutableStateOf(
-        prefs.getStringSet(VisualBlockingSettings.KEY_CATEGORIES, VisualBlockingSettings.DEFAULT_CATEGORIES)
-            ?: VisualBlockingSettings.DEFAULT_CATEGORIES
-    )
-        private set
-
     var threshold by mutableFloatStateOf(
         prefs.getFloat(VisualBlockingSettings.KEY_THRESHOLD, VisualBlockingSettings.DEFAULT_THRESHOLD)
     )

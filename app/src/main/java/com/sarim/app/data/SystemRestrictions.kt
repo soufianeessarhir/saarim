@@ -5,13 +5,13 @@ import com.sarim.app.security.MandatoryProtection
 
 object SystemRestrictions {
     /**
-     * Applied by [MandatoryProtection] and shown as always on: each one either routes around the
-     * content filters (VPN, private DNS), installs around them, removes the blocker, or lets the
-     * user boot/debug/rewind their way past it.
+     * Applied by [MandatoryProtection] and never listed as editable: each one either routes
+     * around the content filters (VPN, private DNS), installs around them, removes the blocker,
+     * or lets the user boot/debug/rewind their way past it.
      */
     val mandatoryKeys: List<String> = MandatoryProtection.RESTRICTIONS
 
-    val recommendedKeys = mandatoryKeys + UserManager.DISALLOW_FACTORY_RESET
+    val recommendedKeys = listOf(UserManager.DISALLOW_FACTORY_RESET)
 
     val restrictionFieldNames: Map<String, String> by lazy {
         UserManager::class.java.fields
@@ -25,7 +25,7 @@ object SystemRestrictions {
 
     val otherKeys: List<String> by lazy {
         restrictionFieldNames.keys
-            .filter { it !in recommendedKeys }
+            .filter { it !in mandatoryKeys && it !in recommendedKeys }
             .sorted()
     }
 

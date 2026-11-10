@@ -25,7 +25,7 @@
     <string name="onboarding_slide_2_title">Bloquear, não administrar</string>
     <string name="onboarding_slide_2_body">Imagens e vídeos adultos, palavras proibidas, sites adultos em todos os navegadores, SafeSearch forçado, DNS com filtro, Tor e torrents — tudo ativo desde a primeira execução.</string>
     <string name="onboarding_slide_3_title">Seu compromisso</string>
-    <string name="onboarding_slide_3_body">Você escolhe pelo menos 90 dias, ou permanente. Até terminar, nada disso pode ser desligado, enfraquecido ou removido.</string>
+    <string name="onboarding_slide_3_body">Você escolhe pelo menos 90 dias, permanente ou Normal. A proteção continua sempre ativa; o compromisso apenas trava as configurações até terminar.</string>
     <string name="onboarding_slide_4_title">Configuração de proprietário do dispositivo</string>
     <string name="onboarding_slide_4_body">Os privilégios de proprietário, concedidos pelo Shizuku, são o que tranca as portas do sistema: VPN, DNS privado, instalação por fora e desinstalação.</string>
     <string name="onboarding_slide_4_cta">Configurar agora</string>
@@ -285,8 +285,6 @@
 
     <string name="visual_blocking">Bloqueio visual</string>
     <string name="visual_blocking_explanation">Esse recurso analisa imagens, gifs e vídeos exibidos na tela dos apps selecionados usando um modelo de machine learning que roda inteiramente no seu dispositivo — nada é enviado para fora dele. Quando um conteúdo das categorias selecionadas é detectado acima da sensibilidade escolhida, o app é fechado automaticamente.</string>
-    <string name="visual_blocking_enable">Ativar bloqueio visual</string>
-    <string name="visual_blocking_requires_accessibility">Requer que o bloqueio avançado (serviço de acessibilidade) esteja ativado</string>
     <string name="visual_blocking_apps_section">Apps monitorados</string>
     <plurals name="visual_blocking_apps_selected">
         <item quantity="one">%1$d app selecionado</item>
@@ -294,7 +292,7 @@
         <item quantity="other">%1$d apps selecionados</item>
     </plurals>
     <string name="visual_blocking_categories_section">Categorias a bloquear</string>
-    <string name="visual_blocking_categories_desc">Selecione quais categorias detectadas pelo modelo devem acionar o bloqueio</string>
+    <string name="visual_blocking_categories_desc">Todas as categorias detectadas pelo modelo são bloqueadas:</string>
     <string name="visual_blocking_threshold_section">Sensibilidade</string>
     <string name="visual_blocking_threshold_desc">Score combinado mínimo das categorias selecionadas para acionar o bloqueio</string>
     <string name="visual_blocking_suspend">Suspender app</string>
@@ -317,34 +315,42 @@
 
     <!-- Commitment -->
     <string name="commitment_setup_title">Defina o seu compromisso</string>
-    <string name="commitment_setup_intro">Escolha por quanto tempo a proteção contra conteúdo adulto fica travada. É a primeira decisão, antes de qualquer configuração.</string>
+    <string name="commitment_setup_intro">Escolha por quanto tempo a proteção contra conteúdo adulto fica travada, ou escolha Normal para manter as configurações alteráveis com o código de recuperação.</string>
     <plurals name="commitment_duration_days">
         <item quantity="one">%1$d dia</item>
         <item quantity="many">%1$d dias</item>
         <item quantity="other">%1$d dias</item>
     </plurals>
+    <string name="commitment_duration_regular">Normal</string>
+    <string name="commitment_regular_note">Sem compromisso — as configurações podem ser alteradas com o código de recuperação quando quiser</string>
     <string name="commitment_duration_permanent">Permanente</string>
     <string name="commitment_permanent_note">Nunca termina — a remoção forçada de 48 horas fica desativada</string>
-    <string name="commitment_pins_title">O que permanece ativo durante todo o período</string>
+    <string name="commitment_pins_title">O que continua ativo</string>
     <string name="commitment_pins_body">Bloqueio visual de imagens e vídeos adultos em todos os apps monitorados, as palavras proibidas nativas, bloqueio de sites adultos em todos os navegadores, SafeSearch forçado, um DNS familiar, bloqueio de Tor/Orbot e torrents, e as restrições do dispositivo que impedem que uma VPN, um app instalado por fora, uma desinstalação ou uma mudança de relógio contorne tudo isso.</string>
     <string name="commitment_acknowledge">Entendo que isto não pode ser cancelado, encurtado ou desligado — nem com o código de recuperação, nem pelas configurações do Android.</string>
+    <string name="commitment_acknowledge_regular">Entendo que a proteção continua ativa, mas posso alterar as configurações com o código de recuperação quando quiser.</string>
     <string name="commitment_start_button">Iniciar o compromisso</string>
+    <string name="commitment_start_regular">Continuar sem compromisso</string>
     <plurals name="commitment_remaining_days">
         <item quantity="one">%1$d dia restante</item>
         <item quantity="many">%1$d dias restantes</item>
         <item quantity="other">%1$d dias restantes</item>
     </plurals>
     <string name="commitment_remaining_permanent">Permanente</string>
+    <string name="commitment_title">Compromisso</string>
     <string name="commitment_active_title">Compromisso ativo</string>
+    <string name="commitment_regular_status">Normal (sem compromisso)</string>
+    <string name="commitment_regular_desc">A proteção continua ativa. As configurações podem ser alteradas com o código de recuperação.</string>
     <string name="commitment_pinned_desc">A proteção contra conteúdo adulto está travada por este período</string>
-    <string name="commitment_forced_removal_disabled">Um compromisso permanente não tem saída, então a remoção forçada está desativada.</string>
     <string name="commitment_ended">O período do compromisso terminou. A proteção continua ativa, mas não está mais travada.</string>
 
     <!-- Protection overview -->
     <string name="setup_device_owner">Configurar proprietário do dispositivo</string>
     <string name="advanced_blocking">Bloqueio avançado</string>
     <string name="system_restrictions">Restrições do sistema</string>
+    <string name="system_restrictions_desc">Adicione restrições extras além das integradas</string>
     <string name="protection_layers_title">Camadas, todas ativas</string>
+    <string name="mandatory_restrictions_summary">VPN, DNS privado, instalação de fora da loja, desinstalação, controle de apps, modo seguro, depuração USB e alteração de data/hora são sempre restritos.</string>
     <string name="protection_incomplete_title">A proteção está incompleta</string>
     <string name="protection_needs_owner">O proprietário do dispositivo não está concedido: as restrições do sistema e o DNS privado não podem ser aplicados.</string>
     <string name="protection_needs_accessibility">O bloqueio avançado está desligado: imagens, palavras digitadas e apps bloqueados não estão sendo verificados.</string>

@@ -78,23 +78,13 @@ class MandatoryProtectionTest {
     // ------------------------------------------------------------------ visual blocking
 
     @Test
-    fun `visual blocking is forced on with every default category and target`() {
+    fun `visual blocking always keeps every default target`() {
         visualPrefs.edit {
-            putBoolean(VisualBlockingSettings.KEY_ENABLED, false)
-            putBoolean(VisualBlockingSettings.KEY_SUSPEND_ENABLED, false)
-            putStringSet(VisualBlockingSettings.KEY_CATEGORIES, emptySet())
             putStringSet(VisualBlockingSettings.KEY_TARGET_PACKAGES, emptySet())
         }
 
         MandatoryProtection.enforce(context)
 
-        assertTrue(visualPrefs.getBoolean(VisualBlockingSettings.KEY_ENABLED, false))
-        assertTrue(visualPrefs.getBoolean(VisualBlockingSettings.KEY_SUSPEND_ENABLED, false))
-        assertTrue(
-            visualPrefs.getStringSet(VisualBlockingSettings.KEY_CATEGORIES, emptySet())
-                .orEmpty()
-                .containsAll(VisualBlockingSettings.DEFAULT_CATEGORIES)
-        )
         assertTrue(
             visualPrefs.getStringSet(VisualBlockingSettings.KEY_TARGET_PACKAGES, emptySet())
                 .orEmpty()
@@ -103,12 +93,8 @@ class MandatoryProtectionTest {
     }
 
     @Test
-    fun `user-added categories and monitored apps survive enforcement`() {
+    fun `user-added monitored apps survive enforcement`() {
         visualPrefs.edit {
-            putStringSet(
-                VisualBlockingSettings.KEY_CATEGORIES,
-                VisualBlockingSettings.DEFAULT_CATEGORIES + "neutral"
-            )
             putStringSet(
                 VisualBlockingSettings.KEY_TARGET_PACKAGES,
                 VisualBlockingSettings.DEFAULT_TARGET_PACKAGES + "com.example.app"
@@ -117,11 +103,6 @@ class MandatoryProtectionTest {
 
         MandatoryProtection.enforce(context)
 
-        assertTrue(
-            visualPrefs.getStringSet(VisualBlockingSettings.KEY_CATEGORIES, emptySet())
-                .orEmpty()
-                .containsAll(VisualBlockingSettings.DEFAULT_CATEGORIES + "neutral")
-        )
         assertTrue(
             visualPrefs.getStringSet(VisualBlockingSettings.KEY_TARGET_PACKAGES, emptySet())
                 .orEmpty()
@@ -204,8 +185,6 @@ class MandatoryProtectionTest {
 
         assertTrue(securityPrefs.getBoolean(MandatoryProtection.KEY_BLOCK_TOR, false))
         assertTrue(securityPrefs.getBoolean(MandatoryProtection.KEY_BLOCK_TORRENTS, false))
-        assertTrue(MandatoryProtection.isBlockTorEnabled())
-        assertTrue(MandatoryProtection.isBlockTorrentsEnabled())
     }
 
     // ------------------------------------------------------------------ defaults themselves
@@ -248,9 +227,6 @@ class MandatoryProtectionTest {
 
         assertEquals(words, wordsPrefs.getStringSet("blocked_words", emptySet()).orEmpty())
         assertEquals(sites, mandatoryListSites())
-        // Absent means enabled: the service reads this key with a `true` default, and
-        // enforcement only rewrites it when it was explicitly turned off.
-        assertTrue(visualPrefs.getBoolean(VisualBlockingSettings.KEY_ENABLED, true))
         assertTrue(securityPrefs.getBoolean(MandatoryProtection.KEY_BLOCK_TOR, false))
     }
 }

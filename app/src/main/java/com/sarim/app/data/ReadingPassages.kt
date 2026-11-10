@@ -48,12 +48,6 @@ object ReadingLibrary {
             else -> langMap(languageTag).getOrDefault(source, emptyList())
         }
 
-    fun availableCount(context: Context, source: SecurityManager.ReadingSource, languageTag: String): Int =
-        when (source) {
-            SecurityManager.ReadingSource.CUSTOM -> SecurityManager.getCustomReadingPassages(context).size
-            else -> langMap(languageTag).getOrDefault(source, emptyList()).size
-        }
-
     /** A random selection of [SecurityManager.getReadingCount] passages from the configured source. */
     fun pick(context: Context, languageTag: String): List<ReadingPassage> {
         val all = passages(context, SecurityManager.getReadingSource(context), languageTag)

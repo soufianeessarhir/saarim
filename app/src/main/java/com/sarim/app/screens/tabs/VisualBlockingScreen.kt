@@ -8,8 +8,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.ImageSearch
-import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,7 +20,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarim.app.R
-import com.sarim.app.SarimAccessibilityService
 import com.sarim.app.data.VisualBlockingSettings
 import com.sarim.app.screens.common.RecoveryGateDialog
 import com.sarim.app.screens.common.rememberRecoveryGate
@@ -38,7 +35,6 @@ fun VisualBlockingScreen(viewModel: VisualBlockingViewModel = viewModel()) {
     var showAppSelectionDialog by remember { mutableStateOf(false) }
     val recoveryGate = rememberRecoveryGate()
     val sessionActive = recoveryGate.isSessionActive
-    val accessibilityActive = SarimAccessibilityService.isRunning
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item {
@@ -46,27 +42,6 @@ fun VisualBlockingScreen(viewModel: VisualBlockingViewModel = viewModel()) {
                 stringResource(R.string.visual_blocking_explanation),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(16.dp)
-            )
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-        }
-
-        item {
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.visual_blocking_enable)) },
-                supportingContent = {
-                    if (!accessibilityActive) {
-                        Text(
-                            stringResource(R.string.visual_blocking_requires_accessibility),
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    } else {
-                        Text(stringResource(R.string.always_on_desc))
-                    }
-                },
-                leadingContent = { Icon(Icons.Outlined.ImageSearch, null) },
-                trailingContent = {
-                    Switch(checked = true, enabled = false, onCheckedChange = null)
-                }
             )
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
         }
@@ -105,28 +80,17 @@ fun VisualBlockingScreen(viewModel: VisualBlockingViewModel = viewModel()) {
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
-        }
-
-        items(VisualBlockingSettings.SELECTABLE_CATEGORIES) { category ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Checkbox(
-                    checked = viewModel.selectedCategories.contains(category),
-                    enabled = false,
-                    onCheckedChange = null
-                )
-                Text(categoryLabel(category), modifier = Modifier.padding(start = 8.dp))
-                Spacer(Modifier.weight(1f))
-                Text(
-                    stringResource(R.string.always_on),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
+            val categoryNames = listOf(
+                stringResource(R.string.nsfw_category_drawings),
+                stringResource(R.string.nsfw_category_hentai),
+                stringResource(R.string.nsfw_category_porn),
+                stringResource(R.string.nsfw_category_sexy)
+            )
+            Text(
+                categoryNames.joinToString(", "),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
         }
 
         item { HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) }
@@ -169,13 +133,16 @@ fun VisualBlockingScreen(viewModel: VisualBlockingViewModel = viewModel()) {
         item { HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) }
 
         item {
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.visual_blocking_suspend)) },
-                supportingContent = { Text(stringResource(R.string.visual_blocking_suspend_desc)) },
-                leadingContent = { Icon(Icons.Outlined.Timer, null) },
-                trailingContent = {
-                    Checkbox(checked = true, enabled = false, onCheckedChange = null)
-                }
+            Text(
+                stringResource(R.string.visual_blocking_suspend),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
+            )
+            Text(
+                stringResource(R.string.visual_blocking_suspend_desc),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
             )
 
             NumberSettingField(
@@ -291,11 +258,12 @@ private fun MonitoredAppsDialog(
                                     .padding(vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Checkbox(
-                                    checked = viewModel.targetPackages.contains(app.packageName),
-                                    enabled = !mandatory,
-                                    onCheckedChange = { viewModel.toggleAppSelection(app.packageName) }
-                                )
+                                if (!mandatory) {
+                                    Checkbox(
+                                        checked = viewModel.targetPackages.contains(app.packageName),
+                                        onCheckedChange = { viewModel.toggleAppSelection(app.packageName) }
+                                    )
+                                }
                                 Column(modifier = Modifier
                                     .weight(1f)
                                     .padding(horizontal = 12.dp)) {
@@ -365,13 +333,4 @@ private fun NumberSettingField(
             singleLine = true
         )
     }
-}
-
-@Composable
-private fun categoryLabel(category: String): String = when (category) {
-    "drawings" -> stringResource(R.string.nsfw_category_drawings)
-    "hentai" -> stringResource(R.string.nsfw_category_hentai)
-    "porn" -> stringResource(R.string.nsfw_category_porn)
-    "sexy" -> stringResource(R.string.nsfw_category_sexy)
-    else -> category
 }

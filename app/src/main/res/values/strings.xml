@@ -267,15 +267,13 @@
 
     <string name="visual_blocking">Visual blocking</string>
     <string name="visual_blocking_explanation">This feature scans images, gifs and videos shown on screen in the selected apps using a machine learning model that runs entirely on your device — nothing is uploaded or sent anywhere. When content matching the selected categories is detected above the chosen sensitivity, the app is closed automatically.</string>
-    <string name="visual_blocking_enable">Enable visual blocking</string>
-    <string name="visual_blocking_requires_accessibility">Requires advanced blocking (accessibility service) to be enabled</string>
     <string name="visual_blocking_apps_section">Monitored apps</string>
     <plurals name="visual_blocking_apps_selected">
         <item quantity="one">%1$d app selected</item>
         <item quantity="other">%1$d apps selected</item>
     </plurals>
     <string name="visual_blocking_categories_section">Categories to block</string>
-    <string name="visual_blocking_categories_desc">Select which categories detected by the model should trigger blocking</string>
+    <string name="visual_blocking_categories_desc">Every category the model detects is blocked:</string>
     <string name="visual_blocking_threshold_section">Sensitivity</string>
     <string name="visual_blocking_threshold_desc">Minimum combined score of the selected categories needed to trigger blocking</string>
     <string name="visual_blocking_suspend">Suspend app</string>
@@ -308,7 +306,7 @@
     <string name="onboarding_slide_2_title">Blocking, not managing</string>
     <string name="onboarding_slide_2_body">Adult images and video, forbidden words, adult sites in every browser, forced SafeSearch, filtering DNS, Tor and torrents — all on from the first launch.</string>
     <string name="onboarding_slide_3_title">Your commitment</string>
-    <string name="onboarding_slide_3_body">You choose at least 90 days, or permanent. Until it ends, none of it can be turned off, weakened or removed.</string>
+    <string name="onboarding_slide_3_body">You choose at least 90 days, permanent, or Regular. Protection always stays on; a commitment only locks the settings until it ends.</string>
     <string name="onboarding_slide_4_title">Device owner setup</string>
     <string name="onboarding_slide_4_body">Owner privileges, granted through Shizuku, are what lock the system doors: VPN, private DNS, sideloading and uninstalling.</string>
     <string name="onboarding_slide_4_cta">Set up now</string>
@@ -316,32 +314,40 @@
 
     <!-- Commitment -->
     <string name="commitment_setup_title">Set your commitment</string>
-    <string name="commitment_setup_intro">Choose how long adult-content protection stays locked on. This is the first decision, made before any setting.</string>
+    <string name="commitment_setup_intro">Choose how long adult-content protection stays locked on, or pick Regular to keep settings changeable with the recovery code.</string>
     <plurals name="commitment_duration_days">
         <item quantity="one">%1$d day</item>
         <item quantity="other">%1$d days</item>
     </plurals>
+    <string name="commitment_duration_regular">Regular</string>
+    <string name="commitment_regular_note">No commitment — settings can be changed with the recovery code whenever you want</string>
     <string name="commitment_duration_permanent">Permanent</string>
     <string name="commitment_permanent_note">Never ends — the 48-hour forced removal is disabled</string>
-    <string name="commitment_pins_title">What stays on for the whole period</string>
+    <string name="commitment_pins_title">What stays on</string>
     <string name="commitment_pins_body">Visual blocking of adult images and video in every monitored app, the built-in forbidden words, adult-site blocking in every browser, forced SafeSearch, a family DNS resolver, Tor/Orbot and torrent blocking, and the device restrictions that stop a VPN, a sideloaded app, an uninstall or a clock change from getting around them.</string>
     <string name="commitment_acknowledge">I understand this cannot be cancelled, shortened or turned off — not with the recovery code, not from Android settings.</string>
+    <string name="commitment_acknowledge_regular">I understand protection stays on, but I can change settings with the recovery code whenever I want.</string>
     <string name="commitment_start_button">Start the commitment</string>
+    <string name="commitment_start_regular">Continue without a commitment</string>
     <plurals name="commitment_remaining_days">
         <item quantity="one">%1$d day left</item>
         <item quantity="other">%1$d days left</item>
     </plurals>
     <string name="commitment_remaining_permanent">Permanent</string>
+    <string name="commitment_title">Commitment</string>
     <string name="commitment_active_title">Commitment active</string>
+    <string name="commitment_regular_status">Regular (no commitment)</string>
+    <string name="commitment_regular_desc">Protection stays on. Settings can be changed with the recovery code.</string>
     <string name="commitment_pinned_desc">Adult-content protection is locked on for this period</string>
-    <string name="commitment_forced_removal_disabled">A permanent commitment has no way out, so forced removal is disabled.</string>
     <string name="commitment_ended">The commitment period has ended. Protection stays on, but it is no longer pinned.</string>
 
     <!-- Protection overview -->
     <string name="setup_device_owner">Set up device owner</string>
     <string name="advanced_blocking">Advanced blocking</string>
     <string name="system_restrictions">System restrictions</string>
+    <string name="system_restrictions_desc">Add extra restrictions beyond the built-in ones</string>
     <string name="protection_layers_title">Layers, all on</string>
+    <string name="mandatory_restrictions_summary">VPN, private DNS, sideloading, uninstalling, app control, safe boot, USB debugging and date/time changes are always restricted.</string>
     <string name="protection_incomplete_title">Protection is incomplete</string>
     <string name="protection_needs_owner">Device owner is not granted: the system restrictions and the private DNS cannot be applied.</string>
     <string name="protection_needs_accessibility">Advanced blocking is off: images, typed words and blocked apps are not being checked.</string>

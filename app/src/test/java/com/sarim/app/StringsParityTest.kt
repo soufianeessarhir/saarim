@@ -51,11 +51,11 @@ class StringsParityTest {
     @Test
     fun `the english file holds the full set, not a stub`() {
         // Counts every UI resource entry, strings and plurals together: a count message that
-        // becomes a plural keeps the total, so this still catches a truncated file. 318 is the
+        // becomes a plural keeps the total, so this still catches a truncated file. 324 is the
         // whole UI of a porn-blocking app — focus mode, time limits, usage warnings, app groups,
         // colour filters, impulse lock and the activity blocker were removed with their strings.
         // Raise this when adding entries; lower it only when a feature is deliberately removed,
         // never to make a deletion pass green.
-        (stringKeys("values").size + pluralKeys("values").size) shouldBe 318
+        (stringKeys("values").size + pluralKeys("values").size) shouldBe 324
     }
 }

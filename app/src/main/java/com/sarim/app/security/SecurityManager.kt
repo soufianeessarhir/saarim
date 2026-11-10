@@ -114,34 +114,6 @@ class SecurityManager {
         }
 
         /**
-         * Tor packages the service has suspended. Kept apart from the apps that merely look like
-         * Tor so releasing one block never lets go of what another one is holding.
-         */
-        fun getTorSuspendedPackages(context: Context): Set<String> {
-            val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
-            return prefs.getStringSet("tor_suspended_packages", emptySet()) ?: emptySet()
-        }
-
-        fun setTorSuspendedPackages(context: Context, packages: Set<String>) {
-            val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
-            prefs.edit { putStringSet("tor_suspended_packages", packages) }
-        }
-
-        /**
-         * Torrent apps the service has suspended, kept apart from the Tor set: a client that
-         * handles both magnet links and onion traffic must not be released by the other block.
-         */
-        fun getTorrentSuspendedPackages(context: Context): Set<String> {
-            val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
-            return prefs.getStringSet("torrent_suspended_packages", emptySet()) ?: emptySet()
-        }
-
-        fun setTorrentSuspendedPackages(context: Context, packages: Set<String>) {
-            val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
-            prefs.edit { putStringSet("torrent_suspended_packages", packages) }
-        }
-
-        /**
          * What has to be solved after the biometric prompt and before the settings open. Defaults
          * to the 32-word challenge: entry has to cost something, or the lock screen is decoration.
          */
@@ -154,23 +126,10 @@ class SecurityManager {
                 .sortedBy { it.ordinal }
         }
 
-        fun setAccessChallenges(context: Context, challenges: Set<ChallengeType>) {
-            val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
-            prefs.edit {
-                putStringSet("access_challenges", challenges.map { it.name }.toSet())
-                remove("impulse_lock_mode")
-            }
-        }
-
         fun getTetrisMinutes(context: Context): Int {
             val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
             return prefs.getInt("tetris_minutes", TETRIS_DEFAULT_MINUTES)
                 .coerceIn(TETRIS_MIN_MINUTES, TETRIS_MAX_MINUTES)
-        }
-
-        fun setTetrisMinutes(context: Context, minutes: Int) {
-            val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
-            prefs.edit { putInt("tetris_minutes", minutes.coerceIn(TETRIS_MIN_MINUTES, TETRIS_MAX_MINUTES)) }
         }
 
         fun isTetrisSoundEnabled(context: Context): Boolean {
@@ -189,11 +148,6 @@ class SecurityManager {
             return runCatching { ReadingSource.valueOf(stored) }.getOrDefault(ReadingSource.BIBLE)
         }
 
-        fun setReadingSource(context: Context, source: ReadingSource) {
-            val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
-            prefs.edit { putString("reading_source", source.name) }
-        }
-
         /**
          * How many texts the reading challenge shows. Stored as chosen; callers cap it to what the
          * selected source actually has, so switching sources doesn't lose the setting.
@@ -201,11 +155,6 @@ class SecurityManager {
         fun getReadingCount(context: Context): Int {
             val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
             return prefs.getInt("reading_count", READING_DEFAULT_COUNT).coerceAtLeast(READING_MIN_COUNT)
-        }
-
-        fun setReadingCount(context: Context, count: Int) {
-            val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
-            prefs.edit { putInt("reading_count", count.coerceAtLeast(READING_MIN_COUNT)) }
         }
 
         /** Phrases the user wrote for the reading challenge, in the order they were added. */
@@ -221,18 +170,13 @@ class SecurityManager {
             }.getOrDefault(emptyList())
         }
 
-        fun setCustomReadingPassages(context: Context, passages: List<ReadingPassage>) {
-            val array = JSONArray()
-            passages.forEach { array.put(JSONObject().put("text", it.text).put("source", it.source)) }
-            val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
-            prefs.edit { putString("reading_custom_passages", array.toString()) }
-        }
-
     /**
-     * A permanent commitment has no way out by design, so the 48-hour forced removal — which
-     * exists precisely to let a timed commitment end early — is not offered for one.
+     * A permanent commitment has no way out by design, and a regular setup has nothing to escape,
+     * so the 48-hour forced removal — which exists to let a timed commitment end early — is not
+     * offered for either.
      */
-    fun canStartForcedRemoval(context: Context): Boolean = !CommitmentLock.isPermanent(context)
+    fun canStartForcedRemoval(context: Context): Boolean =
+        !CommitmentLock.isPermanent(context) && !CommitmentLock.isRegular(context)
 
     fun generateRecoveryCode(length: Int = 16): String {
             val random = SecureRandom()

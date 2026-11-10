@@ -47,7 +47,7 @@
     <string name="onboarding_slide_2_title">حجب لا إدارة</string>
     <string name="onboarding_slide_2_body">الصور والفيديوهات الإباحية، والكلمات المحظورة، والمواقع الإباحية في كل متصفح، والبحث الآمن الإجباري، وDNS مع فلترة، وTor والتورنت — كلها مفعّلة من أول تشغيل.</string>
     <string name="onboarding_slide_3_title">التزامك</string>
-    <string name="onboarding_slide_3_body">تختار 90 يومًا على الأقل، أو الالتزام الدائم. وحتى ينتهي، لا يمكن إيقاف أي من ذلك أو إضعافه أو إزالته.</string>
+    <string name="onboarding_slide_3_body">تختار 90 يومًا على الأقل، أو الالتزام الدائم، أو «عادي». تبقى الحماية مفعّلة دائمًا؛ والالتزام يقفل الإعدادات فقط حتى ينتهي.</string>
     <string name="onboarding_slide_4_title">إعداد صلاحيات المالك</string>
     <string name="onboarding_slide_4_body">صلاحيات المالك، الممنوحة عبر Shizuku، هي ما يقفل أبواب النظام: VPN وDNS الخاص والتثبيت من خارج المتجر والإزالة.</string>
     <string name="onboarding_slide_4_cta">الإعداد الآن</string>
@@ -288,8 +288,6 @@
 
     <string name="visual_blocking">الحجب البصري</string>
     <string name="visual_blocking_explanation">هذه الميزة تفحص الصور وGIFs والمقاطع المرئية المعروضة على الشاشة في التطبيقات المختارة باستخدام نموذج تعلم آلي يعمل بالكامل على جهازك — لا شيء يُرسل أو يرفع إلى أي مكان. عند اكتشاف محتوى يطابق الفئات المختارة فوق حد الحساسية المختار، يُغلق التطبيق تلقائيًا.</string>
-    <string name="visual_blocking_enable">تفعيل الحجب البصري</string>
-    <string name="visual_blocking_requires_accessibility">يتطلب الحجب المتقدم (خدمة الوصول إلى الشاشة) أن يكون مفعَّلًا</string>
     <string name="visual_blocking_apps_section">التطبيقات المراقبة</string>
     <plurals name="visual_blocking_apps_selected">
         <item quantity="zero">لا تطبيقات مختارة</item>
@@ -300,7 +298,7 @@
         <item quantity="other">%1$d تطبيق مختار</item>
     </plurals>
     <string name="visual_blocking_categories_section">الفئات التي يتم حجبها</string>
-    <string name="visual_blocking_categories_desc">اختر الفئات التي يكتشفها النموذج لتُحفّز الحجب</string>
+    <string name="visual_blocking_categories_desc">تُحجب كل فئة يكتشفها النموذج:</string>
     <string name="visual_blocking_threshold_section">الحساسية</string>
     <string name="visual_blocking_threshold_desc">الحد الأدنى للنقاط المجمّعة للفئات المختارة لاستثارة الحجب</string>
     <string name="visual_blocking_suspend">تعليق التطبيق</string>
@@ -326,7 +324,7 @@
 
     <!-- Commitment -->
     <string name="commitment_setup_title">حدّد التزامك</string>
-    <string name="commitment_setup_intro">اختر المدة التي تبقى فيها الحماية من المحتوى الإباحي مقفلة. هذا أول قرار، قبل أي إعداد.</string>
+    <string name="commitment_setup_intro">اختر المدة التي تبقى فيها الحماية من المحتوى الإباحي مقفلة، أو اختر «عادي» لتبقى الإعدادات قابلة للتغيير برمز الاسترداد.</string>
     <plurals name="commitment_duration_days">
         <item quantity="zero">لا أيام</item>
         <item quantity="one">يوم واحد</item>
@@ -335,12 +333,16 @@
         <item quantity="many">%1$d يومًا</item>
         <item quantity="other">%1$d يوم</item>
     </plurals>
+    <string name="commitment_duration_regular">عادي</string>
+    <string name="commitment_regular_note">بدون التزام — يمكن تغيير الإعدادات برمز الاسترداد وقتما تشاء</string>
     <string name="commitment_duration_permanent">دائم</string>
     <string name="commitment_permanent_note">لا ينتهي أبدًا — تُعطَّل الإزالة القسرية بعد 48 ساعة</string>
-    <string name="commitment_pins_title">ما يبقى مفعّلًا طوال المدة</string>
+    <string name="commitment_pins_title">ما يبقى مفعّلًا</string>
     <string name="commitment_pins_body">الحجب البصري للصور والفيديوهات الإباحية في كل تطبيق مراقب، والكلمات المحظورة المدمجة، وحجب المواقع الإباحية في كل متصفح، وتفعيل البحث الآمن إجباريًا، وخادم DNS عائلي، وحجب Tor/Orbot والتورنت، وقيود الجهاز التي تمنع الالتفاف عليها عبر VPN أو تطبيق مثبّت من الخارج أو إزالة التطبيق أو تغيير الساعة.</string>
     <string name="commitment_acknowledge">أفهم أن هذا لا يمكن إلغاؤه أو تقصيره أو إيقافه — لا برمز الاسترداد ولا من إعدادات أندرويد.</string>
+    <string name="commitment_acknowledge_regular">أفهم أن الحماية تبقى مفعّلة، لكن يمكنني تغيير الإعدادات برمز الاسترداد وقتما أشاء.</string>
     <string name="commitment_start_button">ابدأ الالتزام</string>
+    <string name="commitment_start_regular">المتابعة بدون التزام</string>
     <plurals name="commitment_remaining_days">
         <item quantity="zero">بقي 0 يوم</item>
         <item quantity="one">بقي يوم واحد</item>
@@ -350,16 +352,20 @@
         <item quantity="other">بقي %1$d يوم</item>
     </plurals>
     <string name="commitment_remaining_permanent">دائم</string>
+    <string name="commitment_title">الالتزام</string>
     <string name="commitment_active_title">الالتزام ساري</string>
+    <string name="commitment_regular_status">عادي (بدون التزام)</string>
+    <string name="commitment_regular_desc">تبقى الحماية مفعّلة. يمكن تغيير الإعدادات برمز الاسترداد.</string>
     <string name="commitment_pinned_desc">الحماية من المحتوى الإباحي مقفلة لهذه المدة</string>
-    <string name="commitment_forced_removal_disabled">الالتزام الدائم لا مخرج منه، لذا الإزالة القسرية معطّلة.</string>
     <string name="commitment_ended">انتهت مدة الالتزام. تبقى الحماية مفعّلة، لكنها لم تعد مقفلة.</string>
 
     <!-- Protection overview -->
     <string name="setup_device_owner">إعداد مالك الجهاز</string>
     <string name="advanced_blocking">الحجب المتقدم</string>
     <string name="system_restrictions">قيود النظام</string>
+    <string name="system_restrictions_desc">أضف قيودًا إضافية فوق القيود المدمجة</string>
     <string name="protection_layers_title">الطبقات، جميعها مفعّلة</string>
+    <string name="mandatory_restrictions_summary">VPN وDNS الخاص وتثبيت التطبيقات من خارج المتجر وإلغاء التثبيت والتحكم بالتطبيقات والوضع الآمن وتصحيح USB وتغيير التاريخ والوقت قيود دائمة.</string>
     <string name="protection_incomplete_title">الحماية غير مكتملة</string>
     <string name="protection_needs_owner">ملكية الجهاز غير ممنوحة: لا يمكن تطبيق قيود النظام وDNS الخاص.</string>
     <string name="protection_needs_accessibility">الحجب المتقدم متوقف: لا يتم فحص الصور والكلمات المكتوبة والتطبيقات المحجوبة.</string>

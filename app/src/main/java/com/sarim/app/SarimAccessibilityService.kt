@@ -89,7 +89,6 @@ class SarimAccessibilityService : AccessibilityService() {
     // updateVisualBlockingSettings() so onAccessibilityEvent doesn't hit SharedPreferences on
     // every event — kept in sync live via prefsListener while the settings screen is open.
     private var nsfwTargetPackages: Set<String> = VisualBlockingSettings.DEFAULT_TARGET_PACKAGES
-    private var nsfwCategories: Set<String> = VisualBlockingSettings.DEFAULT_CATEGORIES
     private var nsfwThreshold: Float = VisualBlockingSettings.DEFAULT_THRESHOLD
     private var nsfwSuspendBlockCount: Int = VisualBlockingSettings.DEFAULT_SUSPEND_BLOCK_COUNT
     private var nsfwSuspendWindowMinutes: Int = VisualBlockingSettings.DEFAULT_SUSPEND_WINDOW_MINUTES
@@ -209,9 +208,6 @@ class SarimAccessibilityService : AccessibilityService() {
         nsfwTargetPackages = visualBlockingPrefs.getStringSet(
             VisualBlockingSettings.KEY_TARGET_PACKAGES, VisualBlockingSettings.DEFAULT_TARGET_PACKAGES
         ) ?: VisualBlockingSettings.DEFAULT_TARGET_PACKAGES
-        nsfwCategories = visualBlockingPrefs.getStringSet(
-            VisualBlockingSettings.KEY_CATEGORIES, VisualBlockingSettings.DEFAULT_CATEGORIES
-        ) ?: VisualBlockingSettings.DEFAULT_CATEGORIES
         nsfwThreshold = visualBlockingPrefs.getFloat(
             VisualBlockingSettings.KEY_THRESHOLD, VisualBlockingSettings.DEFAULT_THRESHOLD
         )
@@ -601,7 +597,7 @@ class SarimAccessibilityService : AccessibilityService() {
                                 val elapsedMs = SystemClock.elapsedRealtime() - startMs
                                 crop.recycle()
 
-                                val categories = nsfwCategories
+                                val categories = VisualBlockingSettings.DEFAULT_CATEGORIES
                                 val threshold = nsfwThreshold
                                 val unsafeScore = detector.unsafeScore(scores, categories)
                                 val scoresText = NsfwContentDetector.LABELS.zip(scores.toList())

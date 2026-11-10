@@ -89,9 +89,9 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 
 | | |
 |---|---|
-| 🔒 **Commitment** | Chosen at setup: at least 90 days, or permanent. Nothing in the app — including the recovery code — can end it early. |
+| 🔒 **Commitment** | Chosen at setup: Regular (no lock), at least 90 days, or permanent. A timed or permanent commitment cannot be ended early, even with the recovery code. |
 | 🧠 **On-device visual blocking** | A local TensorFlow Lite model detects explicit images and video on screen and closes the app. Nothing is uploaded. |
-| ⌨️ **Word blocking** | Erases forbidden adult words as they're typed, or closes the app when they appear anywhere on screen. A built-in list can't be removed. |
+| ⌨️ **Word blocking** | Closes the app when a forbidden adult word is typed or appears anywhere on screen. A built-in list can't be removed. |
 | 🌐 **Adult-site blocking** | A built-in domain list plus forced SafeSearch pushed into every browser, and a filtering private DNS that resolves nothing else. |
 | 🛡️ **Device Owner restrictions** | VPN, private DNS, sideloading, uninstalling, safe boot, USB debugging and clock changes are closed at the OS level. |
 | 🚫 **Tor, torrents and 18+ apps** | Tor/Orbot and torrent clients are suspended on sight; apps the store rates 18+ are suspended on install. |
@@ -131,7 +131,7 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 <details>
 <summary><b>Word blocking</b></summary>
 
-- **Active blocking:** erases a forbidden word as it's typed into a selected app and shows a block screen.
+- **Active blocking:** detects a forbidden word typed into a selected app and closes it with a block screen once typing stops.
 - **Passive blocking:** scans on-screen text (not just typed input) per app, useful for search results and feeds, and closes the app when a configured word appears anywhere on screen.
 
 </details>
@@ -140,11 +140,11 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 <summary><b>Visual blocking (on-device machine learning)</b></summary>
 
 - A local TensorFlow Lite model (MobileNetV2) classifies on-screen images and video into drawings, hentai, neutral, porn, and sexy. No data leaves the device.
-- The Accessibility Service scans the screen of selected apps for likely media regions, captures them, and runs the classifier; the app is closed when the combined score for the selected categories crosses a configurable threshold.
+- The Accessibility Service scans the screen of selected apps for likely media regions, captures them, and runs the classifier; the app is closed when the combined score for the four adult categories crosses a configurable threshold.
 - Escalation is always on: after a set number of blocks within a time window, the app is suspended for a configurable duration instead of just being closed.
 - Visual blocking itself is not optional: it is on from the first launch, with the porn, hentai, sexy and drawings categories always classified, and the built-in monitored app is never removable. You can add more apps, tune the sensitivity (30–70 %) and the suspension thresholds.
-- **Your commitment** pins the whole stack — visual blocking, forbidden words, browser lists, SafeSearch, DNS, Tor/torrents and the system restrictions — for the period you chose at setup (90 days minimum, or permanent). Any attempt to clear the stored settings is undone on the next launch. It survives reboots and resists system clock changes in both directions.
-- A timed commitment can still be ended through the 48-hour forced removal. A permanent one cannot — that is the difference between the two choices.
+- **Your commitment** pins the whole stack — visual blocking, forbidden words, browser lists, SafeSearch, DNS, Tor/torrents and the system restrictions — for the period you chose at setup (90 days minimum, or permanent), or you can choose Regular and keep the settings changeable with the recovery code. Any attempt to clear the stored settings is undone on the next launch. A timed or permanent commitment survives reboots and resists system clock changes in both directions.
+- A timed commitment can still be ended through the 48-hour forced removal. A permanent one cannot — that is the difference between the two choices. Regular has no forced removal because there is no commitment to escape.
 
 </details>
 
@@ -175,8 +175,9 @@ Becoming Device Owner requires a bridge between user space and system space. Fol
 1. **Install [Shizuku](https://shizuku.rikka.app/).** It's used to run the required ADB commands on the device itself.
 2. **Enable Wireless Debugging** in Developer Options and pair it with Shizuku.
 3. **Install and open Sarim**, then grant it access to Shizuku.
-4. **Become Device Owner.** In the Config tab, follow the prompts to register the app as Device Owner. This runs `dpm set-device-owner` through Shizuku.
-5. **Enable the Accessibility Service.** Still in the Config tab, turn on *Advanced blocking* (also applied through Shizuku). It's required for word blocking, visual blocking, blocked-app enforcement and Tor/torrent suspension. App installation is blocked while this service is off, so an unrestricted browser can't be installed in the meantime.
+4. **Become Device Owner.** On Sarim's first-run owner screen, follow the prompts to register the app as Device Owner. This runs `dpm set-device-owner` through Shizuku.
+5. **Enable the Accessibility Service.** On the same setup screen, turn on *Advanced blocking* (also applied through Shizuku). It's required for word blocking, visual blocking, blocked-app enforcement and Tor/torrent suspension. App installation is blocked while this service is off, so an unrestricted browser can't be installed in the meantime.
+6. **Choose the commitment.** Pick Regular, a timed period, or permanent; the app then opens its lock screen and tabs.
 
 **Building from source?** `make help` lists the automated path — build, test, install and Device Owner setup, including a Waydroid container with no phone at hand. See [docs/BUILD_AND_RUN.md](docs/BUILD_AND_RUN.md).
 

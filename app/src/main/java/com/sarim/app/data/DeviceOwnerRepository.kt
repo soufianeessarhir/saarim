@@ -202,7 +202,7 @@ object DeviceOwnerRepository {
         return try {
             var dpmOutput = ""
             ShizukuRunner.command(
-                command = "dpm list-owners",
+                command = "dumpsys device_policy",
                 listener = object : ShizukuRunner.CommandResultListener {
                     override fun onCommandResult(output: String, done: Boolean) {
                         println("Output: $output Done: $done")
@@ -213,9 +213,9 @@ object DeviceOwnerRepository {
                         Timber.tag("Shizuku").e(error)
                     }
                 })
-            val componentPath = dpmOutput
-                .substringAfter("admin=", "")
-                .substringBefore(",", "")
+            val adminMatch = Regex("""admin=ComponentInfo\{([^}]+)\}""").find(dpmOutput)
+                ?: return null
+            val componentPath = adminMatch.groupValues[1]
 
             if (componentPath.isEmpty() || !componentPath.contains("/")) return null
 

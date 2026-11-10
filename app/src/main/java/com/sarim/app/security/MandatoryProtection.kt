@@ -31,12 +31,6 @@ object MandatoryProtection {
     private const val KEY_BLOCKED_LISTS = "blocked_lists_json"
     private const val BLOCKED_WORDS_PREFS = "blocked_words_prefs"
 
-    /** Read by the accessibility service; there is no setter on purpose. */
-    fun isBlockTorEnabled(): Boolean = true
-
-    /** Read by the accessibility service; there is no setter on purpose. */
-    fun isBlockTorrentsEnabled(): Boolean = true
-
     /**
      * Bypass routes rather than content filters. With these applied the user cannot point the
      * device at a VPN or a resolver of their choosing, cannot install a new app from outside the
@@ -77,29 +71,6 @@ object MandatoryProtection {
     private fun enforceVisualBlocking(context: Context): Boolean {
         val prefs = context.getSharedPreferences(VisualBlockingSettings.PREFS_NAME, Context.MODE_PRIVATE)
         var changed = false
-
-        if (!prefs.getBoolean(VisualBlockingSettings.KEY_ENABLED, true)) {
-            prefs.edit { putBoolean(VisualBlockingSettings.KEY_ENABLED, true) }
-            changed = true
-        }
-
-        val categories = prefs.getStringSet(
-            VisualBlockingSettings.KEY_CATEGORIES, VisualBlockingSettings.DEFAULT_CATEGORIES
-        ) ?: VisualBlockingSettings.DEFAULT_CATEGORIES
-        if (!categories.containsAll(VisualBlockingSettings.DEFAULT_CATEGORIES)) {
-            prefs.edit {
-                putStringSet(
-                    VisualBlockingSettings.KEY_CATEGORIES,
-                    categories + VisualBlockingSettings.DEFAULT_CATEGORIES
-                )
-            }
-            changed = true
-        }
-
-        if (!prefs.getBoolean(VisualBlockingSettings.KEY_SUSPEND_ENABLED, true)) {
-            prefs.edit { putBoolean(VisualBlockingSettings.KEY_SUSPEND_ENABLED, true) }
-            changed = true
-        }
 
         val targets = prefs.getStringSet(
             VisualBlockingSettings.KEY_TARGET_PACKAGES, VisualBlockingSettings.DEFAULT_TARGET_PACKAGES
