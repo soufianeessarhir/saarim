@@ -76,7 +76,7 @@ object MandatoryProtection {
             VisualBlockingSettings.KEY_TARGET_PACKAGES, VisualBlockingSettings.DEFAULT_TARGET_PACKAGES
         ) ?: VisualBlockingSettings.DEFAULT_TARGET_PACKAGES
         if (!targets.containsAll(VisualBlockingSettings.DEFAULT_TARGET_PACKAGES)) {
-            prefs.edit {
+            prefs.edit(commit = true) {
                 putStringSet(
                     VisualBlockingSettings.KEY_TARGET_PACKAGES,
                     targets + VisualBlockingSettings.DEFAULT_TARGET_PACKAGES
@@ -99,7 +99,7 @@ object MandatoryProtection {
 
         val current = prefs.getStringSet("blocked_words", emptySet()) ?: emptySet()
         if (!current.containsAll(ProtectionDefaults.FORBIDDEN_WORDS)) {
-            prefs.edit { putStringSet("blocked_words", current + ProtectionDefaults.FORBIDDEN_WORDS) }
+            prefs.edit(commit = true) { putStringSet("blocked_words", current + ProtectionDefaults.FORBIDDEN_WORDS) }
             changed = true
         }
 
@@ -109,7 +109,7 @@ object MandatoryProtection {
         if (browsers.isNotEmpty()) {
             val targets = prefs.getStringSet("target_packages", emptySet()) ?: emptySet()
             if (!targets.containsAll(browsers)) {
-                prefs.edit { putStringSet("target_packages", targets + browsers) }
+                prefs.edit(commit = true) { putStringSet("target_packages", targets + browsers) }
                 changed = true
             }
         }
@@ -157,7 +157,9 @@ object MandatoryProtection {
             }
             if (!writtenMandatory) rewritten.put(mandatoryListObject())
 
-            prefs.edit { putString(KEY_BLOCKED_LISTS, rewritten.toString()) }
+            // Commit: the built-in list must be on disk before enforcement returns, so an
+            // immediate process kill cannot leave the browser without it.
+            prefs.edit(commit = true) { putString(KEY_BLOCKED_LISTS, rewritten.toString()) }
         }
 
         BrowserRestrictionsManager(context).applyRestrictions()
@@ -181,11 +183,11 @@ object MandatoryProtection {
 
         // The preferences stay, so the service keeps reading a truthful value.
         if (!prefs.getBoolean(KEY_BLOCK_TOR, false)) {
-            prefs.edit { putBoolean(KEY_BLOCK_TOR, true) }
+            prefs.edit(commit = true) { putBoolean(KEY_BLOCK_TOR, true) }
             changed = true
         }
         if (!prefs.getBoolean(KEY_BLOCK_TORRENTS, false)) {
-            prefs.edit { putBoolean(KEY_BLOCK_TORRENTS, true) }
+            prefs.edit(commit = true) { putBoolean(KEY_BLOCK_TORRENTS, true) }
             changed = true
         }
 

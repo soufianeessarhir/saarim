@@ -27,12 +27,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.activity.compose.LocalActivity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarim.app.R
 import com.sarim.app.SarimAccessibilityService
 import com.sarim.app.data.ProtectionDefaults
 import com.sarim.app.screens.common.OnboardingCarousel
+import com.sarim.app.screens.common.RecoveryConfirmDialog
 import com.sarim.app.screens.common.RecoveryGateDialog
 import com.sarim.app.screens.common.RecoveryGenerateDialog
 import com.sarim.app.screens.common.rememberRecoveryGate
@@ -66,9 +68,14 @@ fun ConfigTab(
     var showCancelForcedRemovalDialog by remember { mutableStateOf(false) }
     var showFinishForcedRemovalDialog by remember { mutableStateOf(false) }
     var confirmForcedRemoval by remember { mutableStateOf(false) }
+    var showRequestReleaseDialog by remember { mutableStateOf(false) }
+    var showCancelReleaseDialog by remember { mutableStateOf(false) }
+    var showFinishReleaseDialog by remember { mutableStateOf(false) }
+    var releaseCodeAction by remember { mutableStateOf<CommitmentReleaseAction?>(null) }
     val recoveryGate = rememberRecoveryGate()
 
     val context = LocalContext.current
+    val activity = LocalActivity.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val shizukuNotRunningMsg = stringResource(R.string.shizuku_not_running)
@@ -83,7 +90,13 @@ fun ConfigTab(
     }
     val permanent = CommitmentLock.isPermanent(context)
     val regular = CommitmentLock.isRegular(context)
+    val stopped = CommitmentLock.isStopped(context)
     val commitmentRemaining = CommitmentLock.remainingMillis(context)
+    val commitmentLocked = permanent || commitmentRemaining > 0L
+    val releaseRequested = CommitmentLock.isDisableRequested(context)
+    val releaseRemaining by remember {
+        mutableLongStateOf(CommitmentLock.disableRequestRemainingMillis(context))
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -92,8 +105,8 @@ fun ConfigTab(
                     headlineContent = {
                         Text(
                             stringResource(
-                                if (regular) R.string.commitment_title
-                                else R.string.commitment_active_title
+                                if (commitmentLocked) R.string.commitment_active_title
+                                else R.string.commitment_title
                             )
                         )
                     },
@@ -101,6 +114,7 @@ fun ConfigTab(
                         Text(
                             when {
                                 regular -> stringResource(R.string.commitment_regular_status)
+                                stopped -> stringResource(R.string.commitment_stopped_status)
                                 permanent -> stringResource(R.string.commitment_remaining_permanent)
                                 commitmentRemaining > 0L -> {
                                     val daysLeft = (commitmentRemaining / (24L * 60L * 60L * 1000L)).toInt()
@@ -118,6 +132,44 @@ fun ConfigTab(
                 )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
             }
+
+            // The seven-day release order is offered only for a timed commitment still running;
+            // a permanent one has no way out and a regular setup has nothing to end.
+            if (CommitmentLock.canRequestDisable(context) || releaseRequested) {
+                item {
+                    val releaseReady = releaseRequested && releaseRemaining == 0L
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.commitment_release_title)) },
+                        supportingContent = {
+                            Text(
+                                when {
+                                    !releaseRequested -> stringResource(R.string.commitment_release_desc)
+                                    releaseReady -> stringResource(R.string.commitment_release_ready)
+                                    else -> {
+                                        val daysLeft =
+                                            ((releaseRemaining + DAY_MS - 1) / DAY_MS).toInt()
+                                        pluralStringResource(
+                                            R.plurals.commitment_release_remaining_days,
+                                            daysLeft,
+                                            daysLeft
+                                        )
+                                    }
+                                }
+                            )
+                        },
+                        leadingContent = { Icon(Icons.Outlined.LockClock, "") },
+                        modifier = Modifier.clickable {
+                            when {
+                                !releaseRequested -> showRequestReleaseDialog = true
+                                releaseReady -> showFinishReleaseDialog = true
+                                else -> showCancelReleaseDialog = true
+                            }
+                        }
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                }
+            }
+
             item {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.device_owner_state)) },
@@ -306,6 +358,88 @@ fun ConfigTab(
         )
     }
 
+    if (showRequestReleaseDialog) {
+        AlertDialog(
+            onDismissRequest = { showRequestReleaseDialog = false },
+            title = { Text(stringResource(R.string.commitment_release_request_title)) },
+            text = { Text(stringResource(R.string.commitment_release_request_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showRequestReleaseDialog = false
+                    releaseCodeAction = CommitmentReleaseAction.REQUEST
+                }) { Text(stringResource(R.string.confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRequestReleaseDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    if (showCancelReleaseDialog) {
+        AlertDialog(
+            onDismissRequest = { showCancelReleaseDialog = false },
+            title = { Text(stringResource(R.string.commitment_release_cancel_title)) },
+            text = { Text(stringResource(R.string.commitment_release_cancel_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    // Cancelling only keeps the commitment stricter, so it needs no code.
+                    CommitmentLock.cancelDisableRequest(context)
+                    showCancelReleaseDialog = false
+                    (context as? android.app.Activity)?.recreate()
+                }) { Text(stringResource(R.string.confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCancelReleaseDialog = false }) {
+                    Text(stringResource(R.string.close))
+                }
+            }
+        )
+    }
+
+    if (showFinishReleaseDialog) {
+        AlertDialog(
+            onDismissRequest = { showFinishReleaseDialog = false },
+            title = { Text(stringResource(R.string.commitment_release_finish_title)) },
+            text = { Text(stringResource(R.string.commitment_release_finish_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showFinishReleaseDialog = false
+                    releaseCodeAction = CommitmentReleaseAction.FINISH
+                }) { Text(stringResource(R.string.commitment_release_finish_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showFinishReleaseDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    if (releaseCodeAction != null) {
+        // Deliberately outside RecoveryGate: the release order is the one code-confirmed action
+        // that has to work while the commitment is freezing everything else.
+        RecoveryConfirmDialog(
+            onConfirm = { code ->
+                val stored = SecurityManager.getRecoveryCode(context)
+                if (stored != null && !SecurityManager.validateRecoveryCode(code, stored)) {
+                    false
+                } else {
+                    when (releaseCodeAction) {
+                        CommitmentReleaseAction.REQUEST -> CommitmentLock.requestDisable(context)
+                        CommitmentReleaseAction.FINISH -> CommitmentLock.stop(context)
+                        null -> Unit
+                    }
+                    releaseCodeAction = null
+                    (context as? android.app.Activity)?.recreate()
+                    true
+                }
+            },
+            onDismiss = { releaseCodeAction = null }
+        )
+    }
+
     if (showStartForcedRemovalDialog) {
         AlertDialog(
             onDismissRequest = { showStartForcedRemovalDialog = false },
@@ -433,8 +567,10 @@ fun ConfigTab(
         LanguageSelectionDialog(
             onDismiss = { showLanguageDialog = false },
             onApply = { languageCode ->
-                LocaleUtils.setLocale(context, languageCode)
+                val needsRecreate = LocaleUtils.setLocale(context, languageCode)
                 showLanguageDialog = false
+                // API 33+ recreates through LocaleManager; older releases need a nudge.
+                if (needsRecreate) activity?.recreate()
             }
         )
     }
@@ -467,6 +603,10 @@ fun ConfigTab(
 
     RecoveryGateDialog(recoveryGate)
 }
+
+private const val DAY_MS = 24L * 60 * 60 * 1000
+
+private enum class CommitmentReleaseAction { REQUEST, FINISH }
 
 /**
  * The private-DNS picker, limited to family/adult-filtering resolvers. There is deliberately no

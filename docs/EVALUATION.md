@@ -39,16 +39,16 @@ treat Google Play as a later, separate product decision.
 
 | Check | Result |
 |---|---|
-| `./gradlew :app:testDebugUnitTest` | **81 tests, 0 failures, 0 errors, 0 skipped** (9 test classes) |
+| `./gradlew :app:testDebugUnitTest` / `testReleaseUnitTest` | **89 tests, 0 failures, 0 errors, 0 skipped** (10 test classes, both variants) |
 | Version and SDK | 1.8.0 / versionCode 18; minSdk 30; target/compile 36 |
-| Source size | 64 Kotlin files in `app/src/main`; 922-line accessibility service |
-| Localisation | 324 string/plural entries per locale; en/ar/pt parity test exists and passes |
+| Source size | 66 Kotlin files in `app/src/main`; 922-line accessibility service |
+| Localisation | 345 string/plural entries per locale; en/ar/pt parity test exists and passes |
 | Privacy policy | `https://sarim.app/privacy` → **HTTP 404** |
 | Store metadata | `fastlane/` contains only images: 512×512 icon and 7 screenshots (540×1052) for en-US, an icon for ar-SA. No titles, descriptions, changelogs, feature graphic or pt-BR assets |
 | CI | No `.github/` workflows or other CI configuration |
 | Release signing | Configured only from `dechainer.store*` in `local.properties`; no release key in the repo (correct), no AAB configuration |
-| Instrumented tests | One template test only; no UI/service tests |
-| On-device behaviour | **Not verified** — no phone or Waydroid session was run |
+| Instrumented tests | None; no UI/service tests |
+| On-device behaviour | **Not verified** — Waydroid was reachable but its Device Owner restrictions blocked installing the updated APK |
 
 The unit tests cover the security manager, commitment arithmetic, mandatory protection, Tor and
 torrent detection, locale handling, navigation and onboarding state. They do **not** cover the
@@ -91,7 +91,7 @@ Scores are for release readiness, not for ambition. 5 = ready, 1 = blocking work
    code; the UI shows them as fixed rather than pretending.
 4. **Thoughtful identity detection.** Tor is matched by package id, normalised package name *and*
    visible label, with a sweep of already-installed apps. That is more robust than a hardcoded list.
-5. **Localisation discipline.** 324 entries in three languages, an Arabic default, RTL, and a
+5. **Localisation discipline.** 345 entries in three languages, an Arabic default, RTL, and a
    parity test that fails on drift. A rare thing in a small project.
 6. **Recovery-by-design.** The paper-code wizard, the share-to-accountability-partner option and
    the 48-hour forced removal are a coherent answer to the "what if I lose it?" problem.
@@ -251,7 +251,7 @@ classes. Add at least a Robolectric test for the word matcher and the region heu
 
 ### P1-3. No CI and no instrumentation tests
 
-The 81 unit tests are a good start, but nothing runs them automatically. A clean-machine build is
+The 85 unit tests are a good start, but nothing runs them automatically. A clean-machine build is
 also unverified because of the hardcoded JDK path.
 
 **Fix:** a GitHub Actions workflow that runs `make test`, `assembleDebug` and `bundleRelease` on
@@ -412,7 +412,7 @@ optional, separate variant only if there is a concrete business reason.
 - [ ] Android 11, 12, 13, 14, 15 and 16, stock and OEM (Samsung/Xiaomi if possible)
 - [ ] GMS and non-GMS (Waydroid or AOSP) devices
 - [ ] Arabic RTL, English and Portuguese; all screens
-- [ ] Fresh install: recovery code → owner → commitment → lock → onboarding
+- [ ] Fresh install: onboarding → recovery code → owner → protection review → commitment → lock
 - [ ] Account present / multiple users: setup explains and blocks correctly
 - [ ] Reboot, power off for hours, date forward/back, safe mode, ADB
 - [ ] Uninstall attempt, force-stop attempt, clear-data attempt
@@ -421,6 +421,7 @@ optional, separate variant only if there is a concrete business reason.
 - [ ] Visual blocking on Reddit and on a Compose app; battery/thermal impact
 - [ ] Word blocking in a browser address bar, a chat app, and a search field
 - [ ] Lost code: forced removal completes; permanent commitment has no escape
+- [ ] Release order: code starts the 7-day wait, cancel resets it, a second code ends the commitment after the wait, and a permanent commitment cannot order one
 - [ ] Release build, not just debug
 - [ ] TalkBack pass on the main screens (the app's own accessibility, not the service)
 

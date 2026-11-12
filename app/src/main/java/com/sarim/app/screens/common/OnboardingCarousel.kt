@@ -86,13 +86,15 @@ private val slides = listOf(
 )
 
 /**
- * "How it works" tour. Shown once on first run and re-opened from the Config tab, so it is a
- * full-screen dialog on both paths. [onFinish] is called by Skip and by Got it; the caller owns
- * the one-time flag.
+ * "How it works" tour. Shown once at the very start of first run, before the recovery code is
+ * generated, and re-opened from the Config tab, so it is a full-screen dialog on both paths.
+ * [onFinish] is called by Skip and by Got it; the caller owns the one-time flag. The last slide's
+ * "set up now" shortcut is suppressed during first run, where setup continues automatically.
  */
 @Composable
 fun OnboardingCarousel(
     onFinish: () -> Unit,
+    showSetupShortcut: Boolean = true,
     viewModel: NavigationViewModel = viewModel()
 ) {
     val pagerState = rememberPagerState(pageCount = { ONBOARDING_SLIDE_COUNT })
@@ -113,10 +115,17 @@ fun OnboardingCarousel(
                     state = pagerState,
                     modifier = Modifier.fillMaxSize()
                 ) { page ->
-                    OnboardingSlide(slides[page], onSetupClick = {
-                        onFinish()
-                        viewModel.navigateTo("setup_device_owner")
-                    })
+                    OnboardingSlide(
+                        slide = slides[page],
+                        onSetupClick = if (showSetupShortcut) {
+                            {
+                                onFinish()
+                                viewModel.navigateTo("setup_device_owner")
+                            }
+                        } else {
+                            null
+                        }
+                    )
                 }
 
                 if (!isLastPage) {
@@ -194,7 +203,7 @@ fun OnboardingCarousel(
 }
 
 @Composable
-private fun OnboardingSlide(slide: OnboardingSlideContent, onSetupClick: () -> Unit) {
+private fun OnboardingSlide(slide: OnboardingSlideContent, onSetupClick: (() -> Unit)?) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -229,7 +238,7 @@ private fun OnboardingSlide(slide: OnboardingSlideContent, onSetupClick: () -> U
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        if (slide.ctaRes != null) {
+        if (slide.ctaRes != null && onSetupClick != null) {
             Spacer(modifier = Modifier.height(24.dp))
             TextButton(onClick = onSetupClick) {
                 Text(stringResource(slide.ctaRes))

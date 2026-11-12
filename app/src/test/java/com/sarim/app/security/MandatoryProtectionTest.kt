@@ -3,6 +3,7 @@ package com.sarim.app.security
 import android.content.Context
 import androidx.core.content.edit
 import androidx.test.core.app.ApplicationProvider
+import com.sarim.app.awaitApplicationLaunchWork
 import com.sarim.app.data.BrowserRestrictionsManager
 import com.sarim.app.data.DeviceAdmin
 import com.sarim.app.data.ProtectionDefaults
@@ -45,7 +46,8 @@ class MandatoryProtectionTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        listOf(securityPrefs, visualPrefs, wordsPrefs, browserPrefs).forEach { it.edit { clear() } }
+        awaitApplicationLaunchWork(context)
+        listOf(securityPrefs, visualPrefs, wordsPrefs, browserPrefs).forEach { it.edit(commit = true) { clear() } }
     }
 
     private fun browserLists(): List<JSONObject> {
@@ -79,7 +81,7 @@ class MandatoryProtectionTest {
 
     @Test
     fun `visual blocking always keeps every default target`() {
-        visualPrefs.edit {
+        visualPrefs.edit(commit = true) {
             putStringSet(VisualBlockingSettings.KEY_TARGET_PACKAGES, emptySet())
         }
 
@@ -94,7 +96,7 @@ class MandatoryProtectionTest {
 
     @Test
     fun `user-added monitored apps survive enforcement`() {
-        visualPrefs.edit {
+        visualPrefs.edit(commit = true) {
             putStringSet(
                 VisualBlockingSettings.KEY_TARGET_PACKAGES,
                 VisualBlockingSettings.DEFAULT_TARGET_PACKAGES + "com.example.app"
@@ -114,7 +116,7 @@ class MandatoryProtectionTest {
 
     @Test
     fun `the built-in forbidden words are written back when missing`() {
-        wordsPrefs.edit { putStringSet("blocked_words", setOf("custom-word")) }
+        wordsPrefs.edit(commit = true) { putStringSet("blocked_words", setOf("custom-word")) }
 
         MandatoryProtection.enforce(context)
 
@@ -141,12 +143,12 @@ class MandatoryProtectionTest {
         val custom = JSONArray()
             .put(JSONObject().put("id", "custom").put("title", "Mine").put("sites", JSONArray().put("example.org")))
             .toString()
-        browserPrefs.edit { putString("blocked_lists_json", custom) }
+        browserPrefs.edit(commit = true) { putString("blocked_lists_json", custom) }
 
         MandatoryProtection.enforce(context)
 
         val ids = browserLists().map { it.optString("id") }
-        assertTrue(ids.contains("custom"))
+        assertTrue("the user list must survive enforcement, got $ids", ids.contains("custom"))
         assertTrue(ids.contains(ProtectionDefaults.MANDATORY_BROWSER_LIST_ID))
         assertEquals("the mandatory list appears once", 1, ids.count { it == ProtectionDefaults.MANDATORY_BROWSER_LIST_ID })
     }
@@ -161,7 +163,7 @@ class MandatoryProtectionTest {
                     .put("sites", JSONArray().put("pornhub.com"))
             )
             .toString()
-        browserPrefs.edit { putString("blocked_lists_json", tampered) }
+        browserPrefs.edit(commit = true) { putString("blocked_lists_json", tampered) }
 
         MandatoryProtection.enforce(context)
 
@@ -176,7 +178,7 @@ class MandatoryProtectionTest {
 
     @Test
     fun `Tor and torrent blocking are switched on and stay on`() {
-        securityPrefs.edit {
+        securityPrefs.edit(commit = true) {
             putBoolean(MandatoryProtection.KEY_BLOCK_TOR, false)
             putBoolean(MandatoryProtection.KEY_BLOCK_TORRENTS, false)
         }

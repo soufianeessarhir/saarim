@@ -3,7 +3,7 @@
 # One target for the whole job:
 #
 #make setup           # build + install + Device Owner + accessibility + launch
-#             then first-run in-app: recovery code, commitment, onboarding
+#             then first-run in-app: onboarding, recovery code, protection review, commitment
 #
 # The device defaults to the Waydroid container; pass DEVICE=adb for a USB phone.
 # Full walkthrough: docs/BUILD_AND_RUN.md
@@ -85,46 +85,35 @@ install: build ## Install the debug APK on the device
 launch: ## Start Sarim on the device
 	$(DLAUNCH)
 
-# One `$(DSH) sh -c` call per target: sudo then prompts for the password once, not per line.
+# The per-device commands live in scripts/device-cmds.sh and are fed to the shell on
+# stdin: `waydroid` parses argv itself, so a bare `-c` after `shell` is swallowed by
+# waydroid's option parser and dies with "unrecognized arguments: -c set -e; ...".
+# One `$(DSH)` call per target: sudo then prompts for the password once, not per line.
+SCRIPTS   := scripts/device-cmds.sh
+
 owner: ## Register Sarim as Device Owner (needs one user, no account, no other owner)
 	@echo "==> Checking eligibility, then dpm set-device-owner $(ADMIN)"
-	@$(DSH) sh -c 'set -e; \
-		owner=$$(dumpsys device_policy 2>/dev/null | grep -m1 "^  Device Owner:"); \
-		if [ -n "$$owner" ]; then \
-			echo "!! a device owner is already registered:"; echo "$$owner"; \
-			echo "   wipe the container with: make waydroid-reset"; exit 1; \
-		fi; \
-		users=$$(pm list users | grep -c UserInfo); \
-		if [ "$$users" -ne 1 ]; then echo "!! more than one user:"; pm list users; exit 1; fi; \
-		accounts=$$(dumpsys account 2>/dev/null | grep -c "Account {") || true; \
-		if [ "$$accounts" -ne 0 ]; then \
-			echo "!! an account is signed in; remove it first (a GAPPS image with a"; \
-			echo "   Google account can never accept a device owner)"; exit 1; \
-		fi; \
-		dpm set-device-owner $(ADMIN); \
-		dumpsys device_policy 2>/dev/null | grep -A2 "^  Device Owner:"'
+	@$(DSH) sh -s -- owner $(ADMIN) < $(SCRIPTS)
 
 privileges: ## Enable the accessibility service and grant the system permissions
-	@$(DSH) sh -c 'settings put secure enabled_accessibility_services $(ACCESSIBILITY); \
-		settings put secure accessibility_enabled 1; \
-		pm grant $(APP_ID) android.permission.WRITE_SECURE_SETTINGS 2>/dev/null || true; \
-		echo "== accessibility service =="; settings get secure enabled_accessibility_services; \
-		echo "== permissions granted =="; \
-		dumpsys package $(APP_ID) | grep -E "android.permission.WRITE_SECURE_SETTINGS: granted=true"'
+	@$(DSH) sh -s -- privileges $(ACCESSIBILITY) $(APP_ID) < $(SCRIPTS)
 
 status: ## Show owner registration, accessibility and app state
-	@$(DSH) sh -c 'echo "== device owner =="; dumpsys device_policy 2>/dev/null | grep -A2 "^  Device Owner:"; \
-		echo "== accessibility service =="; settings get secure enabled_accessibility_services; \
-		echo "== app =="; \
-		dumpsys package $(APP_ID) 2>/dev/null \
-			| grep -E "versionName|WRITE_SECURE_SETTINGS: granted"'
+	@$(DSH) sh -s -- status $(APP_ID) < $(SCRIPTS)
 
 logcat: ## Follow Sarim's logs (debug builds log through Timber)
 	$(DSH) logcat -s Sarim
 
-uninstall: ## Remove Sarim from the device (a Device Owner must be released first)
-	-$(DSH) dpm remove-active-admin $(ADMIN) --user 0
-	$(DREMOVE)
+uninstall: ## Remove Sarim from the device (releases Device Owner first)
+	@echo "==> Releasing device-owner $(ADMIN)"; \
+	-$(DSH) dpm remove-active-admin $(ADMIN) --user 0 2>/dev/null || true; \
+	$(DREMOVE) 2>/dev/null || true; \
+	if waydroid app list 2>/dev/null | grep -qi "^packageName: $(APP_ID)$$"; then \
+		echo "!! Sarim still installed — device-owner apps resist shell removal."; \
+		echo "   Total wipe (drops owner, accounts, app data): make waydroid-reset  (needs sudo)"; \
+	else \
+		echo "Sarim removed."; \
+	fi
 
 # ---------------------------------------------------------------------- setup
 
@@ -162,10 +151,23 @@ waydroid-down: ## Stop the session and the container
 	-waydroid session stop
 	-sudo waydroid container stop
 
-waydroid-reset: ## Wipe the container back to a fresh Android (drops owner, accounts, app data)
-	-sudo waydroid container stop
-	sudo waydroid init -f
+waydroid-reset: ## Wipe Waydroid back to a fresh Android (drops owner, accounts, app data)
+	@echo "==> Stopping session and container"
+	-waydroid session stop 2>/dev/null || true
+	-sudo waydroid container stop 2>/dev/null || true
+	-sudo systemctl stop waydroid-container 2>/dev/null || true
+	@mount | grep -q waydroid && { echo "!! waydroid still mounted — stopping service"; sudo systemctl stop waydroid-container; } || true
+	@echo "==> Wiping Android userdata (apps, device owner, accounts)"
+	rm -rf ~/.local/share/waydroid/data
+	mkdir -p ~/.local/share/waydroid/data
+	@echo "==> Wiping container runtime data and overlays"
+	sudo rm -rf /var/lib/waydroid/data /var/lib/waydroid/overlay_rw /var/lib/waydroid/overlay_work
+	sudo mkdir -p /var/lib/waydroid/data \
+		/var/lib/waydroid/overlay_rw/system /var/lib/waydroid/overlay_rw/vendor \
+		/var/lib/waydroid/overlay_work/system /var/lib/waydroid/overlay_work/vendor
 	$(MAKE) waydroid-up
+
+reset: waydroid-reset
 
 help: ## Show this help
 	@echo "Sarim — build, run and Device Owner automation"
@@ -177,4 +179,4 @@ help: ## Show this help
 
 .PHONY: build release playstore test check clean doctor install launch owner \
 	privileges status logcat uninstall setup deploy-waydroid deploy-adb \
-	waydroid-up waydroid-restart waydroid-down waydroid-reset help
+	waydroid-up waydroid-restart waydroid-down waydroid-reset reset help

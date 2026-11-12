@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sarim.app.AppPrefs
 import com.sarim.app.R
@@ -31,23 +32,26 @@ import com.sarim.app.data.ApkUpdateInstaller
 import com.sarim.app.screens.common.OnboardingCarousel
 import com.sarim.app.screens.setup.SetupCommitment
 import com.sarim.app.screens.setup.SetupDeviceOwnerPrivileges
+import com.sarim.app.screens.setup.SetupProtection
 import com.sarim.app.screens.setup.SetupRecovery
 import com.sarim.app.screens.tabs.*
 import com.sarim.app.security.CommitmentLock
 import com.sarim.app.security.SecurityManager
 import com.sarim.app.ui.theme.SarimTheme
+import com.sarim.app.viewmodels.AuthViewModel
 import com.sarim.app.viewmodels.DeviceOwnerViewModel
 import com.sarim.app.viewmodels.NavigationViewModel
 import kotlinx.coroutines.delay
 
 class MainActivity : LocalizedActivity() {
 
-    private val authenticated = mutableStateOf(false)
+    private lateinit var authViewModel: AuthViewModel
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (SecurityManager.consumeDebugAutoStartSession(this)) authenticated.value = true
+        authViewModel = ViewModelProvider(this)[AuthViewModel::class.java]
+        if (SecurityManager.consumeDebugAutoStartSession(this)) authViewModel.authenticate()
         SecurityManager.consumeDebugRestoreUnknownSourcesRestriction(this)
         ApkUpdateInstaller.restoreUnknownSourcesRestrictionsIfIdle(this)
         enableEdgeToEdge()
@@ -62,6 +66,14 @@ class MainActivity : LocalizedActivity() {
 
                 var onboardingCompleted by remember {
                     mutableStateOf(AppPrefs.isOnboardingCompleted(this))
+                }
+
+                // Confirmed on first run before the commitment; an install that already has a
+                // commitment is treated as confirmed so upgrading does not repeat setup.
+                var protectionConfirmed by remember {
+                    mutableStateOf(
+                        AppPrefs.isProtectionSetupConfirmed(this) || CommitmentLock.hasStarted(this)
+                    )
                 }
 
                 // Written once, by the setup screen; held in state so starting a commitment
@@ -139,7 +151,7 @@ class MainActivity : LocalizedActivity() {
                         )
                     },
                     bottomBar = {
-                        if (!SecurityManager.isRecoveryCodeSet(this) || !authenticated.value) return@Scaffold
+                        if (!SecurityManager.isRecoveryCodeSet(this) || !authViewModel.authenticated) return@Scaffold
 
                         val tabs = listOf(
                             Triple(NavigationViewModel.SCREEN_PROTECTION, R.string.protection, Icons.Outlined.Security),
@@ -172,31 +184,41 @@ class MainActivity : LocalizedActivity() {
                 ) { innerPadding ->
 
                     when {
+                        // The tour opens first run: what the app is, and how it works, before
+                        // anything is generated or granted.
+                        !onboardingCompleted -> OnboardingCarousel(
+                            onFinish = {
+                                AppPrefs.markOnboardingCompleted(this)
+                                onboardingCompleted = true
+                            },
+                            showSetupShortcut = false
+                        )
+
                         !SecurityManager.isRecoveryCodeSet(this) -> SetupRecovery(innerPadding)
 
                         // Owner privileges need ADB, and the commit-state restrictions close ADB,
                         // so they are granted before the commitment is chosen, never after.
                         !viewModel.isDeviceOwner() -> SetupDeviceOwnerPrivileges()
 
+                        // Protection is reviewed and confirmed while it is still changeable; only
+                        // then is the commitment offered to lock it.
+                        !protectionConfirmed -> SetupProtection(
+                            paddingValues = innerPadding,
+                            onConfirmed = { protectionConfirmed = true }
+                        )
+
                         !commitmentStarted -> SetupCommitment(
                             paddingValues = innerPadding,
                             onStarted = { commitmentStarted = true }
                         )
 
-                        !authenticated.value -> Box(
+                        !authViewModel.authenticated -> Box(
                             modifier = Modifier
                                 .padding(innerPadding)
                                 .consumeWindowInsets(innerPadding)
                         ) {
-                            LockScreen(onAuthenticated = { authenticated.value = true })
+                            LockScreen(onAuthenticated = { authViewModel.authenticate() })
                         }
-
-                        !onboardingCompleted -> OnboardingCarousel(
-                            onFinish = {
-                                AppPrefs.markOnboardingCompleted(this)
-                                onboardingCompleted = true
-                            }
-                        )
 
                         else -> Box(modifier = Modifier.padding(innerPadding)) {
                             when (currentScreen) {
@@ -219,6 +241,8 @@ class MainActivity : LocalizedActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        SecurityManager.endSession()
+        // A configuration change (rotation, language switch) keeps the recovery session; only a
+        // real close should end it.
+        if (isFinishing) SecurityManager.endSession()
     }
 }

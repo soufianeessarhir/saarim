@@ -3,8 +3,8 @@
 Sarim does one job: keep pornography and adult content off an Android phone, and keep the way back
 in closed. Every other kind of self-control feature — focus timers, app time limits, usage
 warnings, app groups, colour filters, an impulse button — was removed on purpose. What is left is
-a small number of layers that are all on from the first launch, plus an optional commitment that
-freezes them for a period the user cannot shorten.
+a small number of layers that are all on from the first launch, plus a commitment that freezes
+them for a period the user can end early only through a code-confirmed order that waits seven days.
 
 This document describes the app as it is built: what each layer does, its defaults, what it
 needs, and exactly which actions are gated by the recovery code and which by the commitment.
@@ -27,6 +27,8 @@ an *existing* protection may be tuned or weakened. Concretely:
 - **The commitment overrides the session.** While a commitment is running, `RecoveryGate` refuses
   every gated change, even with the code, except actions that only add protection
   (`strengtheningAction = true`): enabling advanced blocking, blocking an app, suspending an app.
+  The one deliberate exception is the release order: it sits outside `RecoveryGate`, is confirmed
+  with the code, and cannot end anything until its seven-day wait has passed.
 - **Tor/Orbot and torrents are on by default and cannot be cancelled.** They are shown as status
   rows on the Protection tab; Config has no toggle for either, and `enforce()` keeps the backing
   preferences true.
@@ -36,7 +38,8 @@ an *existing* protection may be tuned or weakened. Concretely:
   itself once it is running.
 
 The recovery code is the only ordinary way to *weaken* an adult-protection layer later, which is
-exactly what the code was added to guard. It cannot shorten or end the commitment.
+exactly what the code was added to guard. It cannot shorten the commitment, and it can end one only
+through the seven-day release order.
 
 ### What “default and not cancellable” means in the code
 
@@ -52,12 +55,20 @@ the service reads a truthful value; `enforce()` puts them back and there is no U
 
 ## 1. Setup, in order
 
-The app is unusable until three things exist, in this order:
+First run is a fixed sequence:
 
-1. **A recovery code** — generated in-app, written on paper, handed to someone else if possible.
-2. **Device owner and advanced blocking** — the two Android powers the enforcement relies on,
+1. **The "How it works" tour** — five slides, before anything is generated, so the app is
+   understood before it starts making decisions for the user.
+2. **A recovery code** — generated in-app, written on paper, handed to someone else if possible.
+3. **Device owner and advanced blocking** — the two Android powers the enforcement relies on,
    granted through [Shizuku](https://shizuku.rikka.app/) and re-checked on every launch.
-3. **The commitment** — Regular (no lock), a timed period, or permanent.
+4. **The protection review** — `SetupProtection` lists the always-on layers, lets the user pick the
+   filtering DNS host and add the factory-reset block, and requires one confirmation.
+5. **The commitment** — Regular (no lock), a timed period, or permanent.
+
+The protection review comes before the commitment because the commitment is what freezes those
+choices. Confirming the setup first is what makes the lock meaningful, and it keeps the duration
+picker from doubling as a settings screen.
 
 ### 1.1 Device owner
 
@@ -84,12 +95,25 @@ reachable, and the Protection tab would show an incomplete-protection card if it
 |---|---|
 | Presets | **Regular** (no lock), 90, 180, 365, 730 days, or **permanent** |
 | Accepted range | 90 – 3650 days for a timed commitment (values below the floor are raised to 90); `0` selects Regular |
-| Stored as | `security_prefs` → `commitment_start_rtc`, `commitment_start_elapsed`, `commitment_duration_ms` (`-1` = permanent, `-2` = regular), `commitment_last_seen_rtc` |
-| Chosen at | setup, once, before the app opens for the first time |
-| Release | the period running out; or the 48-hour forced removal — **not offered for a permanent or regular setup** |
+| Stored as | `security_prefs` → `commitment_start_rtc`, `commitment_start_elapsed`, `commitment_duration_ms` (`-1` = permanent, `-2` = regular, `-3` = ended early), `commitment_last_seen_rtc`, plus the release-order keys |
+| Chosen at | once, after the protection review, before the app opens for the first time |
+| Release | the period running out; a code-confirmed release order after a 7-day wait (timed commitments only); or the 48-hour forced removal — **not offered for a permanent or regular setup** |
 
 `start()` is the only entry point and `hasStarted()` guards it: a running commitment is never
-restarted, shortened or replaced. There is no `stop()` anywhere in the app.
+restarted, shortened or replaced.
+
+**The release order.** A timed commitment can be ended early in three stages:
+
+1. **Order** — Config → *End commitment early* explains the wait, then asks for the recovery code.
+   `requestDisable()` records the order and starts a 7-day timer.
+2. **Wait or cancel** — the timer is recomputed from `elapsedRealtime` plus a wall-clock watermark,
+   so a reboot or a date change cannot skip it. Cancelling (`cancelDisableRequest()`) needs no code,
+   drops the order, resets the timer, and leaves the commitment exactly as it was.
+3. **Finish** — once the wait is over, a second confirmation with the recovery code calls `stop()`,
+   which records `-3` and lifts the settings freeze. Protection stays on. `canStartForcedRemoval()`
+   then returns false: there is nothing left to escape.
+
+A permanent commitment cannot place an order; a regular setup has nothing to end.
 
 **What it freezes.** While `isLocked()`:
 
@@ -98,7 +122,9 @@ restarted, shortened or replaced. There is no `stop()` anywhere in the app.
   blocked-word edits, browser lists, DNS, monitoring changes, app unblocking/unsuspending, the
   accessibility switch being turned *off*, and changes to the recovery code itself;
 - the only bypass is `strengtheningAction = true`, used by the few controls that can only add
-  protection: enabling advanced blocking, blocking an app, suspending an app.
+  protection: enabling advanced blocking, blocking an app, suspending an app;
+- the release order is the other exception, and it sits outside `RecoveryGate` on purpose: it takes
+  the recovery code directly, records a 7-day wait, and cannot stop anything before that wait ends.
 
 **Telling time.** The deadline is recomputed, never stored as a countdown:
 
@@ -109,8 +135,8 @@ restarted, shortened or replaced. There is no `stop()` anywhere in the app.
 - the wall-clock reading is capped at the deadline, so an absurd jump forward cannot make the
   remaining time negative either.
 
-A permanent commitment reports `Long.MAX_VALUE` remaining, `0` as an end time, and
-`SecurityManager.canStartForcedRemoval()` returns false.
+A permanent commitment reports `Long.MAX_VALUE` remaining, `0` as an end time,
+`SecurityManager.canStartForcedRemoval()` returns false, and cannot place a release order.
 
 ### 1.3 Recovery code and sessions
 
@@ -333,7 +359,8 @@ are allowed during a commitment; unblocking and un-suspending are not.
 
 | Row | What it does |
 |---|---|
-| Commitment | days left, *Permanent*, or *Regular (no commitment)*; read-only |
+| Commitment | days left, *Permanent*, *Regular (no commitment)* or *Ended early*; read-only |
+| End commitment early | the 7-day release order for a timed commitment: code to order, cancel at any time, code again when the wait ends |
 | Device owner | state badge; opens the Shizuku setup screen |
 | Advanced blocking | accessibility switch (gated; enabling is allowed during a commitment) |
 | Visual blocking | monitored apps, sensitivity, suspension thresholds; all four categories are fixed |
@@ -356,9 +383,12 @@ are allowed during a commitment; unblocking and un-suspending are not.
 owner can be removed without the recovery code, and the app can be uninstalled.
 
 It is cancellable before it completes, and it is **not offered at all for a permanent or regular
-setup** (`canStartForcedRemoval` returns false and the Settings row is hidden). That is the only
-difference between "permanent" and a very long period, and the setup screen says so before the
-choice is made.
+setup, nor once a commitment has ended early** (`canStartForcedRemoval` returns false and the
+Settings row is hidden). It is also no longer the only early exit for a timed commitment: the 7-day
+release order ends one while the recovery code is still available, without removing Device Owner.
+Forced removal stays the path for a lost code, which is why it needs no code at all. Between
+"permanent" and a very long period there are now two differences: no forced removal and no release
+order, and the setup screen says so before the choice is made.
 
 ---
 
@@ -373,6 +403,7 @@ session is active), runs through an active session, or never asks at all.
 - keyboard layout;
 - opening the onboarding carousel again;
 - the forced-removal timer (when the commitment is timed);
+- cancelling the release order (only the order and its final confirmation need the code);
 - reading any screen, including the commitment, device-owner state and every current setting.
 
 **Asks once, then runs for 10 minutes (renewable):**
@@ -387,9 +418,15 @@ session is active), runs through an active session, or never asks at all.
 - advanced blocking: turning accessibility on (turning it off is refused by the commitment);
 - the recovery code itself (changing it needs the current one).
 
+**The release order:** while a timed commitment is running, Config → *End commitment early* asks for
+the recovery code directly, not through the session gate — it has to work precisely when everything
+else is frozen. The code starts the 7-day wait, the same code (or a still-active session) ends the
+commitment once the wait is over, and cancelling the order never asks for a code.
+
 **Refused even with an active session:** every one of the gated actions above while a commitment is
 running — except enabling advanced blocking, blocking an app and suspending an app, which only make
-the phone stricter. The dialog explains that the commitment is locked.
+the phone stricter, and the release order described above. The dialog explains that the commitment
+is locked.
 
 The built-in layers (visual blocking itself, its categories, the forbidden-word seed list, the
 built-in adult-site list, SafeSearch, the DNS host being one of the three allowed ones, Tor and
@@ -428,7 +465,8 @@ Also removed with them: `SCHEDULE_EXACT_ALARM`, `USE_EXACT_ALARM`, `FOREGROUND_S
 - SafeSearch forced on every supporting browser;
 - Tor/Orbot and torrent blocking;
 - the eight system restrictions;
-- the commitment itself, once started.
+- the commitment itself, once started — a timed one can only be ended through the 7-day release
+  order, a permanent one not at all.
 
 **Adjustable — by an authenticated session, and only when no commitment is running:**
 
@@ -441,7 +479,9 @@ Also removed with them: `SCHEDULE_EXACT_ALARM`, `USE_EXACT_ALARM`, `FOREGROUND_S
 - blocking/suspending any app (blocking stays available even during a commitment);
 - the recovery code itself;
 - language and keyboard layout (not gated);
-- the 48-hour forced removal timer (not gated; unavailable when permanent or regular).
+- the 48-hour forced removal timer (not gated; unavailable when permanent or regular, or after an
+  early end);
+- the 7-day release order for a timed commitment (code-confirmed, cancellable at any time).
 
 ---
 
@@ -452,14 +492,14 @@ Also removed with them: `SCHEDULE_EXACT_ALARM`, `USE_EXACT_ALARM`, `FOREGROUND_S
 | Preference file | Contents |
 |---|---|
 | `recovery_prefs` | recovery code, forced-removal state |
-| `security_prefs` | commitment, access challenges, Tor/torrent suspension sets, admin result, shuffle keyboard |
+| `security_prefs` | commitment and release-order keys, access challenges, Tor/torrent suspension sets, admin result, shuffle keyboard |
 | `visual_blocking_prefs` | monitored packages, threshold, suspension settings |
 | `blocked_words_prefs` | `blocked_words` (built-in ∪ user), `target_packages`, `passive_words_<package>` |
 | `browser_prefs` | `blocked_lists_json` (built-in list + user lists) |
 | `hidden_apps_prefs` | packages to re-hide when they are reinstalled |
 | `app_ratings` | package → has explicit content |
 | `visual_blocking_suspensions` | suspension deadlines per package |
-| `onboarding_prefs` | whether the one-time carousel has been shown |
+| `onboarding_prefs` | whether the one-time carousel has been shown and the protection setup confirmed |
 
 ---
 

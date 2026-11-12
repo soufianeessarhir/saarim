@@ -3,6 +3,7 @@ package com.sarim.app.security
 import android.content.Context
 import androidx.core.content.edit
 import androidx.test.core.app.ApplicationProvider
+import com.sarim.app.awaitApplicationLaunchWork
 import com.sarim.app.data.ProtectionDefaults
 import com.sarim.app.data.VisualBlockingSettings
 import org.junit.Assert.assertEquals
@@ -38,10 +39,11 @@ class CommitmentLockTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        securityPrefs.edit { clear() }
-        blockingPrefs.edit { clear() }
-        context.getSharedPreferences("blocked_words_prefs", Context.MODE_PRIVATE).edit { clear() }
-        context.getSharedPreferences("browser_prefs", Context.MODE_PRIVATE).edit { clear() }
+        awaitApplicationLaunchWork(context)
+        securityPrefs.edit(commit = true) { clear() }
+        blockingPrefs.edit(commit = true) { clear() }
+        context.getSharedPreferences("blocked_words_prefs", Context.MODE_PRIVATE).edit(commit = true) { clear() }
+        context.getSharedPreferences("browser_prefs", Context.MODE_PRIVATE).edit(commit = true) { clear() }
     }
 
     // ------------------------------------------------------------------ duration rules
@@ -145,11 +147,11 @@ class CommitmentLockTest {
         CommitmentLock.start(context, null)
         assertFalse(SecurityManager.canStartForcedRemoval(context))
 
-        securityPrefs.edit { clear() }
+        securityPrefs.edit(commit = true) { clear() }
         CommitmentLock.start(context, 0)
         assertFalse(SecurityManager.canStartForcedRemoval(context))
 
-        securityPrefs.edit { clear() }
+        securityPrefs.edit(commit = true) { clear() }
         CommitmentLock.start(context, 90)
         assertTrue(SecurityManager.canStartForcedRemoval(context))
     }
@@ -160,7 +162,7 @@ class CommitmentLockTest {
 
         // Rewind both clocks so the period has just run out.
         val expired = 91 * dayMs
-        securityPrefs.edit {
+        securityPrefs.edit(commit = true) {
             putLong("commitment_start_rtc", System.currentTimeMillis() - expired)
             putLong("commitment_start_elapsed", System.currentTimeMillis() - expired)
         }
@@ -174,7 +176,7 @@ class CommitmentLockTest {
     @Test
     fun a_legacy_strictness_lock_is_adopted_as_the_commitment() {
         val startedAt = System.currentTimeMillis() - 10 * dayMs
-        securityPrefs.edit {
+        securityPrefs.edit(commit = true) {
             putLong("strictness_lock_start_rtc", startedAt)
             putLong("strictness_lock_start_elapsed", android.os.SystemClock.elapsedRealtime() - 10 * dayMs)
             putLong("strictness_lock_duration_ms", 90 * dayMs)
@@ -194,7 +196,7 @@ class CommitmentLockTest {
         CommitmentLock.start(context, 90)
 
         // Wall clock claims the period started 91 days ago; elapsedRealtime says otherwise.
-        securityPrefs.edit {
+        securityPrefs.edit(commit = true) {
             putLong("commitment_start_rtc", System.currentTimeMillis() - 91 * dayMs)
         }
 
@@ -207,7 +209,7 @@ class CommitmentLockTest {
         CommitmentLock.start(context, 90)
 
         // elapsedRealtime going backwards is what a reboot looks like.
-        securityPrefs.edit {
+        securityPrefs.edit(commit = true) {
             putLong("commitment_start_elapsed", System.currentTimeMillis() + 60_000L)
         }
 
@@ -222,7 +224,7 @@ class CommitmentLockTest {
         // The device saw 30 days of the commitment pass, then rebooted with the date set back to
         // the start: the watermark is the only record of how much time was really served.
         val startRtc = securityPrefs.getLong("commitment_start_rtc", 0L)
-        securityPrefs.edit {
+        securityPrefs.edit(commit = true) {
             putLong("commitment_last_seen_rtc", startRtc + 30 * dayMs)
             putLong("commitment_start_elapsed", System.currentTimeMillis() + 60_000L)
         }
@@ -238,7 +240,7 @@ class CommitmentLockTest {
     fun an_absurd_forward_jump_cannot_make_the_remaining_time_negative() {
         CommitmentLock.start(context, 90)
 
-        securityPrefs.edit {
+        securityPrefs.edit(commit = true) {
             putLong("commitment_last_seen_rtc", System.currentTimeMillis() + 3650 * dayMs)
             putLong("commitment_start_elapsed", System.currentTimeMillis() + 60_000L)
         }
@@ -252,7 +254,7 @@ class CommitmentLockTest {
     fun enforce_re_asserts_protection_even_without_a_running_commitment() {
         // Nothing here is optional: the layers are on from the first launch, not from the moment
         // a commitment starts.
-        securityPrefs.edit { putBoolean("block_tor", false) }
+        securityPrefs.edit(commit = true) { putBoolean("block_tor", false) }
 
         assertTrue(CommitmentLock.enforce(context))
 
@@ -262,7 +264,7 @@ class CommitmentLockTest {
     @Test
     fun enforce_restores_the_built_in_forbidden_words() {
         val prefs = context.getSharedPreferences("blocked_words_prefs", Context.MODE_PRIVATE)
-        prefs.edit { putStringSet("blocked_words", setOf("my own word")) }
+        prefs.edit(commit = true) { putStringSet("blocked_words", setOf("my own word")) }
 
         assertTrue(CommitmentLock.enforce(context))
 
@@ -275,9 +277,88 @@ class CommitmentLockTest {
     fun enforce_is_idempotent_so_it_cannot_loop_from_a_prefs_listener() {
         CommitmentLock.start(context, 90)
         // Starting a commitment already enforces; break one setting to give the pass work to do.
-        securityPrefs.edit { putBoolean("block_tor", false) }
+        securityPrefs.edit(commit = true) { putBoolean("block_tor", false) }
 
         assertTrue("first pass has fixing to do", CommitmentLock.enforce(context))
         assertFalse("second pass must be a no-op", CommitmentLock.enforce(context))
+    }
+
+    // ------------------------------------------------------------------ release request
+
+    @Test
+    fun release_order_starts_a_seven_day_wait() {
+        CommitmentLock.start(context, 90)
+
+        assertTrue(CommitmentLock.canRequestDisable(context))
+        CommitmentLock.requestDisable(context)
+
+        assertTrue(CommitmentLock.isDisableRequested(context))
+        assertFalse(CommitmentLock.canCompleteDisable(context))
+        assertFalse("a pending order must not end the commitment", CommitmentLock.stop(context))
+
+        val remaining = CommitmentLock.disableRequestRemainingMillis(context)
+        assertTrue("the wait should be close to 7 days, was $remaining", remaining in 6 * dayMs..7 * dayMs)
+        assertTrue(CommitmentLock.isLocked(context))
+    }
+
+    @Test
+    fun cancelling_the_release_order_restores_the_commitment() {
+        CommitmentLock.start(context, 90)
+        CommitmentLock.requestDisable(context)
+
+        CommitmentLock.cancelDisableRequest(context)
+
+        assertFalse(CommitmentLock.isDisableRequested(context))
+        assertEquals(0L, CommitmentLock.disableRequestRemainingMillis(context))
+        assertFalse(CommitmentLock.canCompleteDisable(context))
+        assertTrue(CommitmentLock.isLocked(context))
+        assertTrue("a new order can be placed after cancelling", CommitmentLock.canRequestDisable(context))
+    }
+
+    @Test
+    fun the_commitment_can_be_stopped_once_the_wait_is_over() {
+        CommitmentLock.start(context, 90)
+        CommitmentLock.requestDisable(context)
+
+        // Eight days passed since the order: both clocks agree the wait is over.
+        val served = 8 * dayMs
+        securityPrefs.edit(commit = true) {
+            putLong("commitment_release_request_rtc", System.currentTimeMillis() - served)
+            putLong(
+                "commitment_release_request_elapsed",
+                android.os.SystemClock.elapsedRealtime() - served
+            )
+        }
+
+        assertTrue(CommitmentLock.canCompleteDisable(context))
+        assertTrue(CommitmentLock.stop(context))
+
+        assertTrue(CommitmentLock.isStopped(context))
+        assertTrue(CommitmentLock.hasStarted(context))
+        assertFalse(CommitmentLock.isLocked(context))
+        assertFalse(CommitmentLock.isPermanent(context))
+        assertFalse(CommitmentLock.isRegular(context))
+        assertEquals(0L, CommitmentLock.remainingMillis(context))
+        assertFalse(CommitmentLock.isDisableRequested(context))
+        assertFalse(
+            "a stopped commitment has nothing left to force-remove",
+            SecurityManager.canStartForcedRemoval(context)
+        )
+    }
+
+    @Test
+    fun a_permanent_or_regular_setup_cannot_order_a_release() {
+        CommitmentLock.start(context, null)
+        assertFalse(CommitmentLock.canRequestDisable(context))
+        CommitmentLock.requestDisable(context)
+        assertFalse("permanent is still permanent", CommitmentLock.isDisableRequested(context))
+        assertFalse(CommitmentLock.stop(context))
+
+        securityPrefs.edit(commit = true) { clear() }
+        CommitmentLock.start(context, 0)
+        assertFalse(CommitmentLock.canRequestDisable(context))
+        CommitmentLock.requestDisable(context)
+        assertFalse(CommitmentLock.isDisableRequested(context))
+        assertFalse(CommitmentLock.stop(context))
     }
 }

@@ -21,10 +21,17 @@ object LocaleUtils {
     private fun prefs(context: Context) =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    /** Applies the language chosen in Config → Language, and remembers it. */
-    fun setLocale(context: Context, languageCode: String) {
+    /**
+     * Applies the language chosen in Config → Language, and remembers it.
+     *
+     * Returns true when the caller must recreate its activity to see the change. On API 33+
+     * `LocaleManager` triggers the configuration change itself; below that the app is not an
+     * `AppCompatActivity`, so AppCompat's locale record is not applied to the current activity.
+     */
+    fun setLocale(context: Context, languageCode: String): Boolean {
         prefs(context).edit { putString(KEY_LANGUAGE, languageCode) }
         applyLocale(context, languageCode)
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
     }
 
     /**
@@ -68,8 +75,10 @@ object LocaleUtils {
     /** Per-app language the system holds for Sarim, empty on releases without one. */
     private fun systemPerAppLocale(context: Context): String =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // A locale list can hold more than one language; the app only ever sets one, and
+            // feeding a comma-separated tag to Locale.forLanguageTag would produce nonsense.
             context.getSystemService(LocaleManager::class.java)?.applicationLocales
-                ?.toLanguageTags().orEmpty()
+                ?.get(0)?.toLanguageTag().orEmpty()
         } else {
             ""
         }

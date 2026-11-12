@@ -176,7 +176,10 @@ class SecurityManager {
      * offered for either.
      */
     fun canStartForcedRemoval(context: Context): Boolean =
-        !CommitmentLock.isPermanent(context) && !CommitmentLock.isRegular(context)
+        CommitmentLock.hasStarted(context) &&
+            !CommitmentLock.isPermanent(context) &&
+            !CommitmentLock.isRegular(context) &&
+            !CommitmentLock.isStopped(context)
 
     fun generateRecoveryCode(length: Int = 16): String {
             val random = SecureRandom()

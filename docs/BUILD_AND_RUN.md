@@ -102,15 +102,21 @@ make setup DEVICE=adb
 
 The Makefile can grant the two system powers, not the parts that belong to you:
 
-1. **Recovery code wizard** — 16 characters. Write them on paper, type them back from the
+1. **Onboarding carousel** — the 5-slide "How it works" tour appears first, before anything is
+   generated, so the app is understood before setup starts.
+2. **Recovery code wizard** — 16 characters. Write them on paper, type them back from the
    paper, store the paper somewhere hard to reach. There is no digital copy, and this code
    is the only ordinary way to *weaken* the protection layers later: it opens a 10-minute
    session for the protection settings that are adjustable at all (monitored apps, word lists,
    URL lists, the DNS host among the three, optional system restrictions, app blocking) and for
    changing the code itself. Language, keyboard layout and the forced-removal timer never ask
    for it.
-2. **Onboarding carousel** — the 5-slide tour appears once after the code is set.
-3. Walk the layers in [FEATURES.md §2](FEATURES.md) to exercise each protection.
+3. **Protection review** — confirm the always-on layers, choose one of the three filtering DNS
+   resolvers, optionally block factory reset, and confirm. This is the setup the commitment will
+   lock.
+4. **Commitment** — Regular, a timed period (90 days minimum) or permanent. A timed commitment
+   can later be ended early only through the 7-day release order in Config.
+5. Walk the layers in [FEATURES.md §2](FEATURES.md) to exercise each protection.
 
 > [!WARNING]
 > Once `make owner` succeeds, the restrictions you switch on in the app apply for real, and
@@ -124,7 +130,7 @@ The Makefile grants the two Android powers (owner and accessibility), but not th
 belong to you:
 
 - the recovery code — yours, on paper;
-- the commitment — yours, chosen once at setup;
+- the commitment — yours, chosen once after the protection review;
 - the optional monitored apps, the DNS host among the three, and any extra words or URL lists —
   yours, in Settings.
 

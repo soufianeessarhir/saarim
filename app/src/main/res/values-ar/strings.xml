@@ -43,7 +43,7 @@
     <string name="onboarding_slide_0_title">ما هو صارم</string>
     <string name="onboarding_slide_0_body">حاجب مصمم لمهمة واحدة: إبعاد المواد الإباحية والمحتوى للبالغين عن هذا الهاتف، وإبقاء باب الدخول مغلقًا.</string>
     <string name="onboarding_slide_1_title">جلستك</string>
-    <string name="onboarding_slide_1_body">يفتح رمز الاسترداد جلسة مدتها 10 دقائق لتغيير الإعدادات. ولا يمكنه تقصير التزامك أو إلغاؤه.</string>
+    <string name="onboarding_slide_1_body">يفتح رمز الاسترداد جلسة مدتها 10 دقائق لتغيير الإعدادات. أما إنهاء الالتزام مبكرًا فيتطلب طلبًا يُؤكَّد بالرمز وانتظار 7 أيام.</string>
     <string name="onboarding_slide_2_title">حجب لا إدارة</string>
     <string name="onboarding_slide_2_body">الصور والفيديوهات الإباحية، والكلمات المحظورة، والمواقع الإباحية في كل متصفح، والبحث الآمن الإجباري، وDNS مع فلترة، وTor والتورنت — كلها مفعّلة من أول تشغيل.</string>
     <string name="onboarding_slide_3_title">التزامك</string>
@@ -324,7 +324,7 @@
 
     <!-- Commitment -->
     <string name="commitment_setup_title">حدّد التزامك</string>
-    <string name="commitment_setup_intro">اختر المدة التي تبقى فيها الحماية من المحتوى الإباحي مقفلة، أو اختر «عادي» لتبقى الإعدادات قابلة للتغيير برمز الاسترداد.</string>
+    <string name="commitment_setup_intro">تم إعداد الحماية. اختر المدة التي تبقى فيها مقفلة، أو اختر «عادي» لتبقى الإعدادات قابلة للتغيير برمز الاسترداد.</string>
     <plurals name="commitment_duration_days">
         <item quantity="zero">لا أيام</item>
         <item quantity="one">يوم واحد</item>
@@ -339,7 +339,7 @@
     <string name="commitment_permanent_note">لا ينتهي أبدًا — تُعطَّل الإزالة القسرية بعد 48 ساعة</string>
     <string name="commitment_pins_title">ما يبقى مفعّلًا</string>
     <string name="commitment_pins_body">الحجب البصري للصور والفيديوهات الإباحية في كل تطبيق مراقب، والكلمات المحظورة المدمجة، وحجب المواقع الإباحية في كل متصفح، وتفعيل البحث الآمن إجباريًا، وخادم DNS عائلي، وحجب Tor/Orbot والتورنت، وقيود الجهاز التي تمنع الالتفاف عليها عبر VPN أو تطبيق مثبّت من الخارج أو إزالة التطبيق أو تغيير الساعة.</string>
-    <string name="commitment_acknowledge">أفهم أن هذا لا يمكن إلغاؤه أو تقصيره أو إيقافه — لا برمز الاسترداد ولا من إعدادات أندرويد.</string>
+    <string name="commitment_acknowledge">أفهم أن الإعدادات تبقى مقفلة لهذه المدة — لا يفتحها رمز الاسترداد ولا إعدادات أندرويد. المخرج الوحيد المبكر هو طلب إنهاء مدته 7 أيام يُؤكَّد بالرمز.</string>
     <string name="commitment_acknowledge_regular">أفهم أن الحماية تبقى مفعّلة، لكن يمكنني تغيير الإعدادات برمز الاسترداد وقتما أشاء.</string>
     <string name="commitment_start_button">ابدأ الالتزام</string>
     <string name="commitment_start_regular">المتابعة بدون التزام</string>
@@ -358,6 +358,36 @@
     <string name="commitment_regular_desc">تبقى الحماية مفعّلة. يمكن تغيير الإعدادات برمز الاسترداد.</string>
     <string name="commitment_pinned_desc">الحماية من المحتوى الإباحي مقفلة لهذه المدة</string>
     <string name="commitment_ended">انتهت مدة الالتزام. تبقى الحماية مفعّلة، لكنها لم تعد مقفلة.</string>
+    <string name="commitment_stopped_status">أُنهي مبكرًا</string>
+    <string name="commitment_release_title">إنهاء الالتزام مبكرًا</string>
+    <string name="commitment_release_desc">قدّم طلبًا لإنهائه: أكّده برمز الاسترداد، وانتظر 7 أيام، ثم أكّده مرة أخرى.</string>
+    <string name="commitment_release_request_title">هل تريد طلب إنهاء الالتزام؟</string>
+    <string name="commitment_release_request_text">ستؤكّد برمز الاسترداد، ثم تبدأ فترة انتظار مدتها 7 أيام. بعدها أدخل الرمز مرة أخرى لإيقاف الالتزام. يمكنك إلغاء الطلب في أي وقت أثناء الانتظار، وهذا يعيد ضبط المؤقت ويُبقي الالتزام كما هو.</string>
+    <plurals name="commitment_release_remaining_days">
+        <item quantity="zero">متاح الآن</item>
+        <item quantity="one">متاح بعد يوم واحد</item>
+        <item quantity="two">متاح بعد يومين</item>
+        <item quantity="few">متاح بعد %1$d أيام</item>
+        <item quantity="many">متاح بعد %1$d يومًا</item>
+        <item quantity="other">متاح بعد %1$d يوم</item>
+    </plurals>
+    <string name="commitment_release_ready">انتهت فترة الانتظار — أدخل الرمز لإنهاء الالتزام</string>
+    <string name="commitment_release_cancel_title">إلغاء الطلب؟</string>
+    <string name="commitment_release_cancel_text">سيُعاد ضبط مؤقت الـ 7 أيام ويستمر الالتزام كما كان.</string>
+    <string name="commitment_release_finish_title">إنهاء الالتزام الآن؟</string>
+    <string name="commitment_release_finish_text">انتهت فترة الانتظار. أدخل رمز الاسترداد لإيقاف الالتزام. تبقى الحماية مفعّلة؛ ويُرفع فقط قفل الإعدادات.</string>
+    <string name="commitment_release_finish_confirm">إنهاء الالتزام</string>
+
+    <!-- Protection setup -->
+    <string name="protection_setup_title">إعداد الحماية</string>
+    <string name="protection_setup_intro">هذه الحمايات مفعّلة من أول تشغيل. اختر خادم DNS المفلتر الذي تفضله، وأضف أي تشديد إضافي، ثم أكّد — هذه هي الحماية التي سيقفلها التزامك.</string>
+    <string name="protection_setup_layers_title">مفعّلة دائمًا</string>
+    <string name="protection_setup_dns_title">DNS مع فلترة</string>
+    <string name="protection_setup_dns_desc">لا يُسمح إلا بخوادم تحجب المحتوى الإباحي. اختر واحدًا؛ ويُطبَّق عند كل تشغيل.</string>
+    <string name="protection_setup_factory_reset">حجب إعادة ضبط المصنع أيضًا</string>
+    <string name="protection_setup_factory_reset_desc">تقييد إضافي: لا يمكن محو الهاتف من إعدادات أندرويد للالتفاف على صارم.</string>
+    <string name="protection_setup_confirm">أؤكد إعداد الحماية هذا. قفله بالتزام هو الخطوة التالية.</string>
+    <string name="protection_setup_continue">المتابعة إلى الالتزام</string>
 
     <!-- Protection overview -->
     <string name="setup_device_owner">إعداد مالك الجهاز</string>
@@ -374,5 +404,5 @@
     <string name="uninstall_blocked">الإزالة محظورة</string>
     <string name="keyboard_description">يغيّر لوحة المفاتيح المستخدمة لرمز الاسترداد وتحدي الكلمات. التخطيط المبعثر يجعل كتابة رمز محفوظ جزئيًا من الذاكرة أصعب بكثير.</string>
     <string name="commitment_settings_locked_title">الإعدادات مقفلة</string>
-    <string name="commitment_settings_locked_body">التزامك ما زال ساريًا. لا يمكن تغيير الحماية من المحتوى الإباحي أو إضعافها أو إيقافها حتى ينتهي — ورمز الاسترداد لا يتجاوز ذلك.</string>
+    <string name="commitment_settings_locked_body">التزامك ما زال ساريًا. لا يمكن تغيير الحماية من المحتوى الإباحي أو إضعافها أو إيقافها حتى ينتهي — رمز الاسترداد لا يتجاوز ذلك. لإنهائه مبكرًا، قدّم طلب إنهاء من تبويب الإعدادات وانتظر 7 أيام.</string>
 </resources>

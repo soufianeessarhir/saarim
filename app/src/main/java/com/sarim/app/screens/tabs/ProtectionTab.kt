@@ -74,6 +74,7 @@ fun ProtectionTab(
             CommitmentCard(
                 permanent = CommitmentLock.isPermanent(context),
                 regular = CommitmentLock.isRegular(context),
+                stopped = CommitmentLock.isStopped(context),
                 remaining = remaining,
                 started = CommitmentLock.hasStarted(context)
             )
@@ -193,7 +194,13 @@ fun ProtectionTab(
 }
 
 @Composable
-private fun CommitmentCard(permanent: Boolean, regular: Boolean, remaining: Long, started: Boolean) {
+private fun CommitmentCard(
+    permanent: Boolean,
+    regular: Boolean,
+    stopped: Boolean,
+    remaining: Long,
+    started: Boolean
+) {
     val active = started && remaining > 0L
     Card(
         modifier = Modifier
@@ -208,7 +215,8 @@ private fun CommitmentCard(permanent: Boolean, regular: Boolean, remaining: Long
         Column(Modifier.padding(20.dp)) {
             Text(
                 stringResource(
-                    if (regular) R.string.commitment_title else R.string.commitment_active_title
+                    if (active || permanent) R.string.commitment_active_title
+                    else R.string.commitment_title
                 ),
                 style = MaterialTheme.typography.titleMedium
             )
@@ -217,6 +225,7 @@ private fun CommitmentCard(permanent: Boolean, regular: Boolean, remaining: Long
                 text = when {
                     !started -> stringResource(R.string.commitment_setup_title)
                     regular -> stringResource(R.string.commitment_regular_status)
+                    stopped -> stringResource(R.string.commitment_stopped_status)
                     permanent -> stringResource(R.string.commitment_remaining_permanent)
                     active -> {
                         val daysLeft = (remaining / (24L * 60L * 60L * 1000L)).toInt()

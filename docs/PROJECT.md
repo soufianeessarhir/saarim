@@ -44,8 +44,8 @@ an onboarding carousel, and a Play-policy build flag.
 | On-device ML | LiteRT 2.2.0, bundled MobileNetV2 (`nsfw_model.tflite`) |
 | Privileged bridge | Shizuku 13.1.5 (ADB / wireless debugging; no root) |
 | Languages | Arabic (default), English, Portuguese; full RTL |
-| Source size | 64 Kotlin files in `app/src/main/java`, 922-line accessibility service |
-| Tests | 9 JVM test classes, 81 tests; no instrumented tests |
+| Source size | 66 Kotlin files in `app/src/main/java`, 922-line accessibility service |
+| Tests | 10 JVM test classes, 89 tests; no instrumented tests |
 | Distribution | Sideloaded APK (no store build configured by default); optional `-PplayStoreBuild=true` variant |
 
 ---
@@ -159,16 +159,20 @@ shell already has the needed privileges, which is why the Makefile path does not
 
 `MainActivity` renders exactly one of these, in order:
 
-1. **Recovery code wizard** — if no code is stored.
-2. **Device Owner setup** — if the app is not Device Owner.
-3. **Commitment selection** — if no commitment has ever been started.
-4. **Lock screen** — biometric/device-credential check, then the access challenge(s).
-5. **Onboarding carousel** — once, on the first authenticated entry.
-6. **Main tabs** — Protection, Apps, Config.
+1. **Onboarding carousel** — the five-slide "How it works" tour, once, before anything is generated.
+2. **Recovery code wizard** — if no code is stored.
+3. **Device Owner setup** — if the app is not Device Owner.
+4. **Protection review** — `SetupProtection` shows the always-on layers, the filtering-DNS choice and
+   the optional factory-reset block; the user confirms it once.
+5. **Commitment selection** — if no commitment has ever been started.
+6. **Lock screen** — biometric/device-credential check, then the access challenge(s).
+7. **Main tabs** — Protection, Apps, Config.
 
 The Device Owner step comes **before** the commitment because the commitment's system restrictions
 close ADB, and ADB is how Shizuku grants Device Owner. Granting it afterwards would be impossible
-until the period ended. The commitment cannot be started until the app is Device Owner.
+until the period ended. The protection step comes before the commitment because the commitment is
+what freezes those choices: confirming them first is what makes the lock meaningful. The commitment
+cannot be started until the app is Device Owner and the protection setup is confirmed.
 
 ### 4.3 Device Owner flow
 
@@ -205,25 +209,37 @@ Re-enabling it is allowed during a commitment because it only adds protection.
 ### 5.1 The commitment
 
 **Purpose:** a chosen period during which adult-content protection cannot be turned off, weakened
-or removed — not by the settings, not by the recovery code, not by clearing preferences.
+or removed — not by the settings, not by the recovery code alone, not by clearing preferences.
 
 | | |
 |---|---|
 | Presets | **Regular** (no lock), 90, 180, 365, 730 days, or **permanent** |
 | Accepted range | 90 – 3650 days (values below the floor are clamped to 90) |
-| Chosen | Once, during setup, before the app opens |
-| Stored | `security_prefs`: `commitment_start_rtc`, `commitment_start_elapsed`, `commitment_duration_ms` (`-1` = permanent, `-2` = regular), `commitment_last_seen_rtc` |
-| Release | The period running out; or the 48-hour forced removal (not offered for a permanent or regular setup) |
+| Chosen | Once, after the protection setup is confirmed, before the app opens |
+| Stored | `security_prefs`: `commitment_start_rtc`, `commitment_start_elapsed`, `commitment_duration_ms` (`-1` = permanent, `-2` = regular, `-3` = ended early), `commitment_last_seen_rtc`, and the release-order keys |
+| Release | The period running out; a code-confirmed release order after a 7-day wait (timed commitments only); or the 48-hour forced removal (not offered for a permanent, regular or already-ended setup) |
 
 `CommitmentLock.start()` is the only entry point. `hasStarted()` guards it, so a running commitment
-is never restarted, shortened or replaced. There is no `stop()` anywhere in the code.
+is never restarted, shortened or replaced.
+
+**Ending it early.** A timed commitment can be ended through a release order: Config → *End
+commitment early* asks for the recovery code, records the order, and starts a fixed 7-day wait
+(`CommitmentLock.requestDisable`). During the wait the user can cancel at any time; cancelling drops
+the order and resets the timer, and the commitment keeps running exactly as it did
+(`cancelDisableRequest`). Once the wait is over, a second confirmation with the recovery code calls
+`CommitmentLock.stop()`, which records `-3` and lifts the settings freeze. Protection itself stays
+on. The wait uses the same elapsed-realtime plus wall-clock-watermark arithmetic as the commitment
+deadline, so a reboot or a date change cannot skip it. A permanent commitment cannot place an order;
+a regular setup has nothing to end.
 
 **What it freezes.** While `isLocked()`:
 
 - every action that goes through `RecoveryGate` is refused, including an action a valid recovery
   session would normally authorise;
 - the only bypass is `strengtheningAction = true`, used by the controls that can only add
-  protection: enabling advanced blocking, blocking an app, suspending an app.
+  protection: enabling advanced blocking, blocking an app, suspending an app;
+- the release order is deliberately outside `RecoveryGate`: while `isLocked()` the user can still
+  order the end of the commitment from Config, but only the wait can end it.
 
 **How the deadline is measured.** The remaining time is recomputed, never stored as a countdown:
 
@@ -454,10 +470,13 @@ Config → *Forced removal* is the deliberate last resort when the recovery code
 - can be cancelled before it completes;
 - when it reaches zero, Device Owner can be removed without the recovery code and the app can be
   uninstalled;
-- is **hidden** for a permanent commitment and for a regular setup (`canStartForcedRemoval`
-  returns false and the row is not rendered).
+- is **hidden** for a permanent commitment, for a regular setup and once a commitment has ended
+  early (`canStartForcedRemoval` returns false and the row is not rendered).
 
-This is the only difference between "permanent" and a very long timed commitment.
+It is not the only early exit for a timed commitment: the 7-day release order ends one without
+removing Device Owner, and it is the path to use while the recovery code is still available. Forced
+removal remains the path for a lost code. Between "permanent" and a very long timed commitment
+there are therefore two differences: no forced removal and no release order.
 
 Implementation note: the current accumulation adds the device's uptime after a reboot rather than
 the wall-clock gap, so time spent powered off is not counted. See
@@ -465,11 +484,15 @@ the wall-clock gap, so time spent powered off is not counted. See
 
 ### 5.14 Onboarding, language, keyboard
 
-- **Onboarding:** a 5-slide "How it works" carousel appears once after the first authenticated
-  entry. Its completion flag lives in `onboarding_prefs`; the same carousel can be reopened from
-  Config → *How it works* at any time.
+- **Onboarding:** a 5-slide "How it works" carousel opens once at the very start of first run,
+  before the recovery code is generated or anything is granted. Its completion flag lives in
+  `onboarding_prefs`, together with the protection-setup confirmation; the same carousel can be
+  reopened from Config → *How it works* at any time.
 - **Language:** Arabic is the default on a fresh install. Config → *Language* switches to English
-  or Portuguese. `localeFilters` declares `en`, `pt`, `ar`; the manifest has
+  or Portuguese immediately: below API 33 the settings screen recreates the activity after saving,
+  and API 33+ recreates through `LocaleManager`. The unlocked state lives in `AuthViewModel` and
+  the recovery session is kept across that recreation, so changing language does not ask for the
+  recovery code again. `localeFilters` declares `en`, `pt`, `ar`; the manifest has
   `android:supportsRtl="true"` and a `locales_config`.
 - **Keyboard:** normal or shuffled keypad for the recovery code and word challenge, so the code
   cannot be memorised by watching finger positions.
@@ -500,6 +523,8 @@ Gating is implemented by `screens/common/RecoveryGate.kt`.
 | Language, keyboard layout | No | Allowed |
 | Reopen onboarding | No | Allowed |
 | Start/cancel forced removal (timed commitment) | No | Allowed |
+| Place or finish the 7-day release order (timed commitment) | Yes, each confirmation | Allowed |
+| Cancel the release order | No | Allowed |
 | Add/remove monitored apps, change sensitivity | Yes, 10-min session | Refused |
 | Add/remove forbidden words, per-app passive lists | Yes | Refused |
 | Add URL lists, attach them to browsers, suspend a browser | Yes | Refused |
@@ -517,17 +542,18 @@ Gating is implemented by `screens/common/RecoveryGate.kt`.
 
 ```text
 First run
+├── OnboardingCarousel      5 slides, "How it works", once
 ├── SetupRecovery           16-character code wizard (paper copy, confirm, store)
 ├── SetupDeviceOwner        Shizuku / owner / account / user checks
+├── SetupProtection         review layers, pick filtering DNS, confirm
 ├── SetupCommitment         Regular, 90/180/365/730 days or permanent, acknowledgement
-├── LockScreen              commitment banner, biometrics, challenge(s)
-└── OnboardingCarousel      5 slides, once
+└── LockScreen              commitment banner, biometrics, challenge(s)
 
 Main tabs
 ├── Protection              commitment card, incomplete-setup warning, layer list
 ├── Apps                    search, filters, block / suspend / uninstall lock
 └── Config
-    ├── Commitment (read-only)
+    ├── Commitment (read-only, plus the 7-day release order)
     ├── Device owner state / SetupDeviceOwnerPrivileges
     ├── Advanced blocking (accessibility switch)
     ├── VisualBlockingScreen
@@ -578,13 +604,13 @@ app/src/main/java/com/sarim/app/
 ├── models/                         AppItem, BlockedList
 ├── notifications/                  APK update result receiver
 ├── screens/
-│   ├── setup/                      recovery, owner, commitment
+│   ├── setup/                      onboarding-adjacent recovery, owner, protection, commitment
 │   ├── challenges/                 words, math, Tetris, reading, sounds
 │   ├── common/                     RecoveryGate, wizards, onboarding, APK dialogs
 │   └── tabs/                       Protection, Apps, Config, Visual, Words, Browser, Restrictions
 ├── security/
 │   ├── SecurityManager.kt          code, session, challenges, forced removal
-│   ├── CommitmentLock.kt           commitment start and time arithmetic
+│   ├── CommitmentLock.kt           commitment start, release order and time arithmetic
 │   └── MandatoryProtection.kt      idempotent enforcement of the whole stack
 ├── ui/theme/                       Compose theme
 ├── utils/
@@ -615,14 +641,14 @@ All persistence is `SharedPreferences`; there is no database.
 | Preference file | Contents |
 |---|---|
 | `recovery_prefs` | `recovery_code`, `forced_removal_active`, `forced_removal_accumulated`, `forced_removal_last_elapsed` |
-| `security_prefs` | commitment keys, `access_challenges`, `tetris_minutes`, `tetris_sound`, `reading_source`, `reading_count`, `reading_custom_passages`, `shuffle_keyboard`, Tor/torrent suspension sets, admin result keys, debug keys |
+| `security_prefs` | commitment keys (`commitment_*`), the release-order keys (`commitment_release_request_rtc`, `commitment_release_request_elapsed`, `commitment_release_last_seen_rtc`), `access_challenges`, `tetris_minutes`, `tetris_sound`, `reading_source`, `reading_count`, `reading_custom_passages`, `shuffle_keyboard`, Tor/torrent suspension sets, admin result keys, debug keys |
 | `visual_blocking_prefs` | `target_packages`, `threshold`, suspension settings |
 | `blocked_words_prefs` | `blocked_words` (built-in ∪ user), `target_packages`, `passive_words_<package>` |
 | `browser_prefs` | `blocked_lists_json` (built-in list + user lists) |
 | `hidden_apps_prefs` | packages to re-hide when reinstalled |
 | `app_ratings` | package → has explicit content |
 | `visual_blocking_suspensions` | suspension deadlines per package |
-| `onboarding_prefs` | whether the one-time carousel has been shown |
+| `onboarding_prefs` | whether the one-time carousel has been shown, and whether the protection setup has been confirmed |
 
 The recovery code and commitment are stored in plain preferences, not encrypted. The manifest has
 `android:allowBackup="true"` with empty backup rules, so the default Android backup set includes
@@ -698,8 +724,9 @@ retrieves interactive windows.
 
 The design accepts self-lockout as a feature. If full restrictions are enabled and the recovery code
 is lost, the device may be unable to change system settings or uninstall the app until the 48-hour
-forced removal completes. A permanent commitment has no forced removal. This is stated in the
-README and in the setup screen; it is the main reason the commitment choice must be deliberate.
+forced removal completes. A timed commitment also offers the 7-day release order while the code is
+available; a permanent commitment offers neither. This is stated in the README and in the setup
+screens; it is the main reason the commitment choice must be deliberate.
 
 ---
 
@@ -761,15 +788,17 @@ The full device walkthrough, Waydroid caveats and troubleshooting are in
 | Suite | What it covers |
 |---|---|
 | `SecurityManagerTest` | Recovery code, sessions, challenges, forced removal |
-| `CommitmentLockTest` | Duration clamping, permanent mode, clock/reboot arithmetic |
+| `CommitmentLockTest` | Duration clamping, permanent mode, clock/reboot arithmetic, 7-day release order |
 | `MandatoryProtectionTest` | Idempotent enforcement of the built-in layers |
 | `TorBlockTest`, `TorrentBlockTest` | Detection signals and negative cases |
-| `StringsParityTest` | en/ar/pt key parity and the exact 324-entry count |
-| `LocaleUtilsTest` | Arabic default, RTL, per-app locale |
+| `StringsParityTest` | en/ar/pt key parity and the exact 345-entry count |
+| `LocaleUtilsTest` | Arabic default, RTL, per-app locale, multi-locale lists, recreate decision |
+| `AuthViewModelTest` | Locked start and unlock state |
 | `NavigationViewModelTest` | Tab/back-stack behaviour |
 | `OnboardingStateTest` | One-time flag |
 
-Verified on 10 November 2026: **81 tests, 0 failures, 0 errors, 0 skipped**. The tests are JVM
+Verified on 12 November 2026: **89 tests, 0 failures, 0 errors, 0 skipped** in both the debug and
+release variants. The tests are JVM
 tests (Robolectric where Android APIs are needed); there are no meaningful instrumentation or UI
 tests, and the accessibility service is not covered.
 
@@ -788,7 +817,7 @@ tests, and the accessibility service is not covered.
 
 ## 14. Localization and accessibility
 
-- **Locales:** Arabic (default), English and Portuguese. Each `strings.xml` has 324 string/plural
+- **Locales:** Arabic (default), English and Portuguese. Each `strings.xml` has 345 string/plural
   entries, enforced by `StringsParityTest`.
 - **RTL:** the manifest enables RTL; Compose layouts use start/end padding and arrangements.
 - **Arabic word matching:** the forbidden-word list includes Arabic terms, and matching is

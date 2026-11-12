@@ -302,7 +302,7 @@
     <string name="onboarding_slide_0_title">What Sarim is</string>
     <string name="onboarding_slide_0_body">A blocker built for one job: keeping pornography and adult content off this phone, and keeping the way in closed.</string>
     <string name="onboarding_slide_1_title">Your session</string>
-    <string name="onboarding_slide_1_body">The recovery code opens a 10-minute session for changing settings. It cannot shorten or cancel your commitment.</string>
+    <string name="onboarding_slide_1_body">The recovery code opens a 10-minute session for changing settings. Ending the commitment early takes an order confirmed with the code and a 7-day wait.</string>
     <string name="onboarding_slide_2_title">Blocking, not managing</string>
     <string name="onboarding_slide_2_body">Adult images and video, forbidden words, adult sites in every browser, forced SafeSearch, filtering DNS, Tor and torrents — all on from the first launch.</string>
     <string name="onboarding_slide_3_title">Your commitment</string>
@@ -314,7 +314,7 @@
 
     <!-- Commitment -->
     <string name="commitment_setup_title">Set your commitment</string>
-    <string name="commitment_setup_intro">Choose how long adult-content protection stays locked on, or pick Regular to keep settings changeable with the recovery code.</string>
+    <string name="commitment_setup_intro">Protection is set up. Choose how long it stays locked on, or pick Regular to keep settings changeable with the recovery code.</string>
     <plurals name="commitment_duration_days">
         <item quantity="one">%1$d day</item>
         <item quantity="other">%1$d days</item>
@@ -325,7 +325,7 @@
     <string name="commitment_permanent_note">Never ends — the 48-hour forced removal is disabled</string>
     <string name="commitment_pins_title">What stays on</string>
     <string name="commitment_pins_body">Visual blocking of adult images and video in every monitored app, the built-in forbidden words, adult-site blocking in every browser, forced SafeSearch, a family DNS resolver, Tor/Orbot and torrent blocking, and the device restrictions that stop a VPN, a sideloaded app, an uninstall or a clock change from getting around them.</string>
-    <string name="commitment_acknowledge">I understand this cannot be cancelled, shortened or turned off — not with the recovery code, not from Android settings.</string>
+    <string name="commitment_acknowledge">I understand settings stay locked for this period — not with the recovery code, not from Android settings. The only early exit is the 7-day release order confirmed with the code.</string>
     <string name="commitment_acknowledge_regular">I understand protection stays on, but I can change settings with the recovery code whenever I want.</string>
     <string name="commitment_start_button">Start the commitment</string>
     <string name="commitment_start_regular">Continue without a commitment</string>
@@ -340,6 +340,32 @@
     <string name="commitment_regular_desc">Protection stays on. Settings can be changed with the recovery code.</string>
     <string name="commitment_pinned_desc">Adult-content protection is locked on for this period</string>
     <string name="commitment_ended">The commitment period has ended. Protection stays on, but it is no longer pinned.</string>
+    <string name="commitment_stopped_status">Ended early</string>
+    <string name="commitment_release_title">End commitment early</string>
+    <string name="commitment_release_desc">Place an order to end it: confirm with the recovery code, wait 7 days, then confirm again.</string>
+    <string name="commitment_release_request_title">Order the end of the commitment?</string>
+    <string name="commitment_release_request_text">Confirm with the recovery code, then a 7-day waiting period starts. After it ends, enter the code again to stop the commitment. You can cancel the order at any time during the wait; that resets the timer and keeps the commitment running as it was.</string>
+    <plurals name="commitment_release_remaining_days">
+        <item quantity="one">Available in %1$d day</item>
+        <item quantity="other">Available in %1$d days</item>
+    </plurals>
+    <string name="commitment_release_ready">Waiting period over — enter the code to end the commitment</string>
+    <string name="commitment_release_cancel_title">Cancel the order?</string>
+    <string name="commitment_release_cancel_text">The 7-day timer will be reset and the commitment continues as it was.</string>
+    <string name="commitment_release_finish_title">End the commitment now?</string>
+    <string name="commitment_release_finish_text">The 7-day waiting period is over. Enter the recovery code to stop the commitment. Protection stays on; only the settings freeze is lifted.</string>
+    <string name="commitment_release_finish_confirm">End commitment</string>
+
+    <!-- Protection setup -->
+    <string name="protection_setup_title">Set up your protection</string>
+    <string name="protection_setup_intro">These protections are on from the first launch. Choose the filtering resolver you prefer, add any extra hardening, then confirm — this is the protection your commitment will lock.</string>
+    <string name="protection_setup_layers_title">Always on</string>
+    <string name="protection_setup_dns_title">Filtering DNS</string>
+    <string name="protection_setup_dns_desc">Only adult-filtering resolvers are allowed. Pick one; it is enforced on every launch.</string>
+    <string name="protection_setup_factory_reset">Also block factory reset</string>
+    <string name="protection_setup_factory_reset_desc">An extra hardening restriction: the phone cannot be wiped from Android settings to bypass Sarim.</string>
+    <string name="protection_setup_confirm">I confirm this protection setup. Locking it with a commitment is the next step.</string>
+    <string name="protection_setup_continue">Continue to commitment</string>
 
     <!-- Protection overview -->
     <string name="setup_device_owner">Set up device owner</string>
@@ -356,5 +382,5 @@
     <string name="uninstall_blocked">Uninstall blocked</string>
     <string name="keyboard_description">Changes the on-screen keyboard used for the recovery code and the word challenge. A shuffled layout makes a half-remembered code much harder to type from memory.</string>
     <string name="commitment_settings_locked_title">Settings are locked</string>
-    <string name="commitment_settings_locked_body">Your commitment is still running. Adult-content protection cannot be changed, weakened or turned off until it ends — the recovery code does not override it.</string>
+    <string name="commitment_settings_locked_body">Your commitment is still running. Adult-content protection cannot be changed, weakened or turned off until it ends — the recovery code does not override it. To end it early, place a release order in Config and wait 7 days.</string>
 </resources>

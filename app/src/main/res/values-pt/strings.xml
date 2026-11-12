@@ -21,7 +21,7 @@
     <string name="onboarding_slide_0_title">O que é o Sarim</string>
     <string name="onboarding_slide_0_body">Um bloqueador feito para uma coisa só: manter pornografia e conteúdo adulto fora deste telefone, e manter a porta fechada.</string>
     <string name="onboarding_slide_1_title">Sua sessão</string>
-    <string name="onboarding_slide_1_body">O código de recuperação abre uma sessão de 10 minutos para mudar configurações. Ele não pode encurtar nem cancelar o seu compromisso.</string>
+    <string name="onboarding_slide_1_body">O código de recuperação abre uma sessão de 10 minutos para mudar configurações. Para encerrar o compromisso antes do fim é preciso um pedido confirmado com o código e uma espera de 7 dias.</string>
     <string name="onboarding_slide_2_title">Bloquear, não administrar</string>
     <string name="onboarding_slide_2_body">Imagens e vídeos adultos, palavras proibidas, sites adultos em todos os navegadores, SafeSearch forçado, DNS com filtro, Tor e torrents — tudo ativo desde a primeira execução.</string>
     <string name="onboarding_slide_3_title">Seu compromisso</string>
@@ -315,7 +315,7 @@
 
     <!-- Commitment -->
     <string name="commitment_setup_title">Defina o seu compromisso</string>
-    <string name="commitment_setup_intro">Escolha por quanto tempo a proteção contra conteúdo adulto fica travada, ou escolha Normal para manter as configurações alteráveis com o código de recuperação.</string>
+    <string name="commitment_setup_intro">A proteção está configurada. Escolha por quanto tempo ela fica travada, ou escolha Normal para manter as configurações alteráveis com o código de recuperação.</string>
     <plurals name="commitment_duration_days">
         <item quantity="one">%1$d dia</item>
         <item quantity="many">%1$d dias</item>
@@ -327,7 +327,7 @@
     <string name="commitment_permanent_note">Nunca termina — a remoção forçada de 48 horas fica desativada</string>
     <string name="commitment_pins_title">O que continua ativo</string>
     <string name="commitment_pins_body">Bloqueio visual de imagens e vídeos adultos em todos os apps monitorados, as palavras proibidas nativas, bloqueio de sites adultos em todos os navegadores, SafeSearch forçado, um DNS familiar, bloqueio de Tor/Orbot e torrents, e as restrições do dispositivo que impedem que uma VPN, um app instalado por fora, uma desinstalação ou uma mudança de relógio contorne tudo isso.</string>
-    <string name="commitment_acknowledge">Entendo que isto não pode ser cancelado, encurtado ou desligado — nem com o código de recuperação, nem pelas configurações do Android.</string>
+    <string name="commitment_acknowledge">Entendo que as configurações ficam travadas por este período — nem o código de recuperação nem as configurações do Android podem encurtá-lo. A única saída antecipada é o pedido de encerramento de 7 dias confirmado com o código.</string>
     <string name="commitment_acknowledge_regular">Entendo que a proteção continua ativa, mas posso alterar as configurações com o código de recuperação quando quiser.</string>
     <string name="commitment_start_button">Iniciar o compromisso</string>
     <string name="commitment_start_regular">Continuar sem compromisso</string>
@@ -343,6 +343,33 @@
     <string name="commitment_regular_desc">A proteção continua ativa. As configurações podem ser alteradas com o código de recuperação.</string>
     <string name="commitment_pinned_desc">A proteção contra conteúdo adulto está travada por este período</string>
     <string name="commitment_ended">O período do compromisso terminou. A proteção continua ativa, mas não está mais travada.</string>
+    <string name="commitment_stopped_status">Encerrado antecipadamente</string>
+    <string name="commitment_release_title">Encerrar o compromisso antes do fim</string>
+    <string name="commitment_release_desc">Faça um pedido para encerrar: confirme com o código de recuperação, aguarde 7 dias e confirme novamente.</string>
+    <string name="commitment_release_request_title">Pedir o encerramento do compromisso?</string>
+    <string name="commitment_release_request_text">Confirme com o código de recuperação e então começa uma espera de 7 dias. Depois dela, digite o código novamente para encerrar o compromisso. Você pode cancelar o pedido a qualquer momento durante a espera; isso zera o cronômetro e mantém o compromisso como estava.</string>
+    <plurals name="commitment_release_remaining_days">
+        <item quantity="one">Disponível em %1$d dia</item>
+        <item quantity="many">Disponível em %1$d dias</item>
+        <item quantity="other">Disponível em %1$d dias</item>
+    </plurals>
+    <string name="commitment_release_ready">Espera concluída — digite o código para encerrar o compromisso</string>
+    <string name="commitment_release_cancel_title">Cancelar o pedido?</string>
+    <string name="commitment_release_cancel_text">O cronômetro de 7 dias será zerado e o compromisso continua como estava.</string>
+    <string name="commitment_release_finish_title">Encerrar o compromisso agora?</string>
+    <string name="commitment_release_finish_text">A espera de 7 dias terminou. Digite o código de recuperação para encerrar o compromisso. A proteção continua ativa; apenas o bloqueio das configurações é removido.</string>
+    <string name="commitment_release_finish_confirm">Encerrar compromisso</string>
+
+    <!-- Protection setup -->
+    <string name="protection_setup_title">Configure sua proteção</string>
+    <string name="protection_setup_intro">Estas proteções ficam ativas desde a primeira execução. Escolha o resolvedor com filtro que preferir, adicione o reforço extra e confirme — é esta proteção que o compromisso vai travar.</string>
+    <string name="protection_setup_layers_title">Sempre ativo</string>
+    <string name="protection_setup_dns_title">DNS com filtro</string>
+    <string name="protection_setup_dns_desc">Somente resolvedores que filtram conteúdo adulto são permitidos. Escolha um; ele é aplicado a cada execução.</string>
+    <string name="protection_setup_factory_reset">Bloquear também a restauração de fábrica</string>
+    <string name="protection_setup_factory_reset_desc">Uma restrição extra: o telefone não pode ser apagado pelas configurações do Android para contornar o Sarim.</string>
+    <string name="protection_setup_confirm">Confirmo esta configuração de proteção. Travá-la com um compromisso é o próximo passo.</string>
+    <string name="protection_setup_continue">Continuar para o compromisso</string>
 
     <!-- Protection overview -->
     <string name="setup_device_owner">Configurar proprietário do dispositivo</string>
@@ -359,5 +386,5 @@
     <string name="uninstall_blocked">Desinstalação bloqueada</string>
     <string name="keyboard_description">Altera o teclado na tela usado para o código de recuperação e o desafio de palavras. Um layout embaralhado torna um código lembrado pela metade muito mais difícil de digitar de memória.</string>
     <string name="commitment_settings_locked_title">As configurações estão travadas</string>
-    <string name="commitment_settings_locked_body">Seu compromisso ainda está em andamento. A proteção contra conteúdo adulto não pode ser alterada, enfraquecida ou desligada até ele terminar — o código de recuperação não se sobrepõe a isso.</string>
+    <string name="commitment_settings_locked_body">Seu compromisso ainda está em andamento. A proteção contra conteúdo adulto não pode ser alterada, enfraquecida ou desligada até ele terminar — o código de recuperação não se sobrepõe a isso. Para encerrá-lo antes, faça um pedido de encerramento na aba Config e aguarde 7 dias.</string>
 </resources>

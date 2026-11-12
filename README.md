@@ -89,7 +89,7 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 
 | | |
 |---|---|
-| 🔒 **Commitment** | Chosen at setup: Regular (no lock), at least 90 days, or permanent. A timed or permanent commitment cannot be ended early, even with the recovery code. |
+| 🔒 **Commitment** | Chosen after the protection is confirmed: Regular (no lock), at least 90 days, or permanent. A timed commitment can only be ended early by a code-confirmed order that waits 7 days; a permanent one cannot be ended at all. |
 | 🧠 **On-device visual blocking** | A local TensorFlow Lite model detects explicit images and video on screen and closes the app. Nothing is uploaded. |
 | ⌨️ **Word blocking** | Closes the app when a forbidden adult word is typed or appears anywhere on screen. A built-in list can't be removed. |
 | 🌐 **Adult-site blocking** | A built-in domain list plus forced SafeSearch pushed into every browser, and a filtering private DNS that resolves nothing else. |
@@ -143,8 +143,8 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 - The Accessibility Service scans the screen of selected apps for likely media regions, captures them, and runs the classifier; the app is closed when the combined score for the four adult categories crosses a configurable threshold.
 - Escalation is always on: after a set number of blocks within a time window, the app is suspended for a configurable duration instead of just being closed.
 - Visual blocking itself is not optional: it is on from the first launch, with the porn, hentai, sexy and drawings categories always classified, and the built-in monitored app is never removable. You can add more apps, tune the sensitivity (30–70 %) and the suspension thresholds.
-- **Your commitment** pins the whole stack — visual blocking, forbidden words, browser lists, SafeSearch, DNS, Tor/torrents and the system restrictions — for the period you chose at setup (90 days minimum, or permanent), or you can choose Regular and keep the settings changeable with the recovery code. Any attempt to clear the stored settings is undone on the next launch. A timed or permanent commitment survives reboots and resists system clock changes in both directions.
-- A timed commitment can still be ended through the 48-hour forced removal. A permanent one cannot — that is the difference between the two choices. Regular has no forced removal because there is no commitment to escape.
+- **Your commitment** pins the whole stack — visual blocking, forbidden words, browser lists, SafeSearch, DNS, Tor/torrents and the system restrictions — for the period you chose after confirming the protection (90 days minimum, or permanent), or you can choose Regular and keep the settings changeable with the recovery code. Any attempt to clear the stored settings is undone on the next launch. A timed or permanent commitment survives reboots and resists system clock changes in both directions.
+- A timed commitment can be ended early through the 7-day release order in Config: the order is confirmed with the recovery code, the timer can be cancelled at any point (which resets it), and once the seven days pass the code ends the commitment. It can also still be ended through the 48-hour forced removal when the code is lost. A permanent commitment has neither route — that is the difference between the two choices.
 
 </details>
 
@@ -177,7 +177,7 @@ Becoming Device Owner requires a bridge between user space and system space. Fol
 3. **Install and open Sarim**, then grant it access to Shizuku.
 4. **Become Device Owner.** On Sarim's first-run owner screen, follow the prompts to register the app as Device Owner. This runs `dpm set-device-owner` through Shizuku.
 5. **Enable the Accessibility Service.** On the same setup screen, turn on *Advanced blocking* (also applied through Shizuku). It's required for word blocking, visual blocking, blocked-app enforcement and Tor/torrent suspension. App installation is blocked while this service is off, so an unrestricted browser can't be installed in the meantime.
-6. **Choose the commitment.** Pick Regular, a timed period, or permanent; the app then opens its lock screen and tabs.
+6. **Review the protection, then choose the commitment.** Confirm the always-on layers, pick the filtering DNS, and only then pick Regular, a timed period, or permanent; the app then opens its lock screen and tabs.
 
 **Building from source?** `make help` lists the automated path — build, test, install and Device Owner setup, including a Waydroid container with no phone at hand. See [docs/BUILD_AND_RUN.md](docs/BUILD_AND_RUN.md).
 
@@ -204,7 +204,7 @@ The Config tab offers a **forced removal** option as a deliberate last resort. I
 > **Sarim is designed to be uncompromising.** Activating full system restrictions and then losing your recovery code may leave you permanently unable to change system settings or restore the device until the 48-hour forced removal completes. This self-lockout is intentional: it's what stops your future self from relapsing. Besides the recovery code and forced removal, there is no other backdoor.
 
 > [!NOTE]
-> **Choose your commitment deliberately.** The recovery code cannot end it: during a timed commitment the 48-hour forced removal is the only way out early, and a **permanent** commitment has no way out at all. Choose a period you can live with before starting it.
+> **Choose your commitment deliberately.** The recovery code cannot end it on its own: a timed commitment needs a code-confirmed release order that waits 7 days (or the 48-hour forced removal if the code is lost), and a **permanent** commitment has no way out at all. Choose a period you can live with before starting it.
 
 ## Privacy
 
@@ -229,7 +229,8 @@ Sarim is a fork of [Déchaîner](https://github.com/warleysr/dechainer) (Apache 
 - Added a first-run "How it works" carousel (5 slides, en/ar/pt) that appears once after the recovery code is set and can be re-opened any time from the Config tab.
 - Added a `-PplayStoreBuild=true` build flag (`BuildConfig.PLAY_STORE_BUILD`) that removes the self-update-by-APK path for the Play-distributed APK, per Google Play policy.
 - Narrowed the app to one job — blocking pornography and adult content — and removed focus mode, time limits, usage warnings, app groups, colour filters, impulse lock and the activity blocker.
-- Added the commitment (90 days minimum or permanent, chosen at setup, with no in-app release), the built-in adult-site list and forbidden words, the family-DNS default, the hardening restrictions (uninstall, app control, safe boot, USB debugging, clock changes), and identity-based Tor/Orbot blocking with an install-time sweep.
+- Added the commitment (90 days minimum or permanent, chosen after a protection review), the 7-day code-confirmed release order for timed commitments, the built-in adult-site list and forbidden words, the family-DNS default, the hardening restrictions (uninstall, app control, safe boot, USB debugging, clock changes), and identity-based Tor/Orbot blocking with an install-time sweep.
+- Moved the "How it works" tour to the very start of first run and added a protection review screen before the commitment.
 
 ## License
 

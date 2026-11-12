@@ -7,6 +7,8 @@ import android.view.View
 import androidx.test.core.app.ApplicationProvider
 import com.sarim.app.R
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -83,5 +85,30 @@ class LocaleUtilsTest {
             "pt",
             LocaleUtils.localizedContext(context).resources.configuration.locales[0].language
         )
+    }
+
+    @Test
+    @Config(sdk = [34])
+    fun `a multi-language per-app list uses the first language`() {
+        context.getSystemService(LocaleManager::class.java)?.applicationLocales =
+            LocaleList.forLanguageTags("pt,en")
+
+        assertEquals("pt", LocaleUtils.getLocale(context))
+        assertEquals(
+            "pt",
+            LocaleUtils.localizedContext(context).resources.configuration.locales[0].language
+        )
+    }
+
+    @Test
+    @Config(sdk = [30])
+    fun `changing language asks the caller to recreate below api 33`() {
+        assertTrue(LocaleUtils.setLocale(context, "en"))
+    }
+
+    @Test
+    @Config(sdk = [34])
+    fun `changing language lets the system recreate on api 33 and up`() {
+        assertFalse(LocaleUtils.setLocale(context, "en"))
     }
 }

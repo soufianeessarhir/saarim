@@ -6,9 +6,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
+import androidx.annotation.VisibleForTesting
 import com.sarim.app.data.AppRepository
 import com.sarim.app.security.CommitmentLock
-import com.sarim.app.security.MandatoryProtection
 import com.sarim.app.utils.LocaleUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +26,9 @@ class SarimApplication : Application() {
         }
     }
 
-    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    /** Exposed to the test source set so tests can wait for the launch-time enforcement pass. */
+    @VisibleForTesting
+    internal val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val packageChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -66,8 +68,8 @@ class SarimApplication : Application() {
 
         // The whole protection stack — visual blocking, forbidden words, browser lists, filtering
         // DNS, Tor/torrents and the system restrictions — is always on: this re-asserts it on
-        // every launch, including on a fresh install and after an upgrade.
+        // every launch, including on a fresh install and after an upgrade. CommitmentLock.enforce
+        // already runs MandatoryProtection.enforce, so a second pass here would only duplicate it.
         applicationScope.launch { CommitmentLock.enforce(this@SarimApplication) }
-        applicationScope.launch { MandatoryProtection.enforce(this@SarimApplication) }
     }
 }
