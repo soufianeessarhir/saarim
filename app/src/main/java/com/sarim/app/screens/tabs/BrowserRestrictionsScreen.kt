@@ -28,14 +28,12 @@ import com.sarim.app.screens.common.RecoveryGateDialog
 import com.sarim.app.screens.common.rememberRecoveryGate
 import com.sarim.app.data.ProtectionDefaults
 import com.sarim.app.models.BlockedList
-import com.sarim.app.viewmodels.AppsViewModel
 import com.sarim.app.viewmodels.BrowserRestrictionsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BrowserRestrictionsScreen(
-    viewModel: BrowserRestrictionsViewModel = viewModel(),
-    appsViewModel: AppsViewModel = viewModel()
+    viewModel: BrowserRestrictionsViewModel = viewModel()
 ) {
     var showEditDialog by remember { mutableStateOf<BlockedList?>(null) }
     var isCreatingNew by remember { mutableStateOf(false) }
@@ -46,6 +44,7 @@ fun BrowserRestrictionsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(padding)
                 .padding(horizontal = 16.dp)
         ) {
             item {
@@ -92,7 +91,7 @@ fun BrowserRestrictionsScreen(
                                                     viewModel.browsers[index] = browser.copy(isSuspended = wasSuspended)
                                                 }
                                             ) {
-                                                appsViewModel.suspendApp(browser.packageName, !checked)
+                                                viewModel.setBrowserSuspended(browser.packageName, !checked)
                                             }
                                         }
                                     )
@@ -123,13 +122,17 @@ fun BrowserRestrictionsScreen(
                 }
             }
 
-            items(viewModel.blockedLists, key = { "url_${it.id}" }) { list ->
+            // The built-in list is enforced by MandatoryProtection on every launch and cannot be
+            // edited, so it is not shown: only the user's own lists are listed here.
+            items(
+                viewModel.blockedLists.filterNot { it.id == ProtectionDefaults.MANDATORY_BROWSER_LIST_ID },
+                key = { "url_${it.id}" }
+            ) { list ->
                 BlockedListAccordion(
                     list = list,
-                    mandatory = list.id == ProtectionDefaults.MANDATORY_BROWSER_LIST_ID,
-                    onEdit = { 
+                    onEdit = {
                         isCreatingNew = false
-                        showEditDialog = list 
+                        showEditDialog = list
                     },
                     onDelete = {
                         recoveryGate.run { viewModel.removeList(list.id) }
@@ -201,7 +204,6 @@ fun BrowserRestrictionsScreen(
 @Composable
 fun BlockedListAccordion(
     list: BlockedList,
-    mandatory: Boolean,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -222,19 +224,11 @@ fun BlockedListAccordion(
                     Text(list.title, style = MaterialTheme.typography.titleMedium)
                     Text("${list.sites.size} sites", style = MaterialTheme.typography.labelSmall)
                 }
-                if (mandatory) {
-                    Text(
-                        stringResource(R.string.always_on),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                } else {
-                    IconButton(onClick = onEdit) {
-                        Icon(Icons.Default.Edit, contentDescription = "")
-                    }
-                    IconButton(onClick = onDelete) {
-                        Icon(Icons.Default.Delete, contentDescription = "")
-                    }
+                IconButton(onClick = onEdit) {
+                    Icon(Icons.Default.Edit, contentDescription = "")
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, contentDescription = "")
                 }
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,

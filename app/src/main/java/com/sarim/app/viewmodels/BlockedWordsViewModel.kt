@@ -11,7 +11,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sarim.app.SarimApplication
 import com.sarim.app.data.AppRepository
-import com.sarim.app.data.ProtectionDefaults
 import com.sarim.app.models.AppItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -21,9 +20,6 @@ import androidx.core.content.edit
 class BlockedWordsViewModel : ViewModel() {
     private val context = SarimApplication.getInstance()
     private val prefs = context.getSharedPreferences("blocked_words_prefs", Context.MODE_PRIVATE)
-
-    var blockedWordsText by mutableStateOf(prefs.getStringSet("blocked_words", emptySet())?.joinToString("\n") ?: "")
-        private set
 
     var targetPackages by mutableStateOf<Set<String>>(
         prefs.getStringSet("target_packages", emptySet()).orEmpty().toSet()
@@ -53,23 +49,6 @@ class BlockedWordsViewModel : ViewModel() {
                 pkg to wordsSet.joinToString("\n")
             }.toMap()
         passiveWordsMap = map
-    }
-
-    /**
-     * Persists the user's list plus [ProtectionDefaults.FORBIDDEN_WORDS], which nothing can
-     * remove: deleting one of them from the field only removes it from view until the next time
-     * the screen is opened. Adding is always allowed.
-     */
-    fun updateWords(text: String) {
-        blockedWordsText = text
-        val wordsSet = text.split("\n")
-            .map { it.trim() }
-            .filter { it.isNotBlank() }
-            .toSet() + ProtectionDefaults.FORBIDDEN_WORDS
-
-        prefs.edit {
-            putStringSet("blocked_words", wordsSet)
-        }
     }
 
     fun updatePassiveWords(packageName: String, text: String) {

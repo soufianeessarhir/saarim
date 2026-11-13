@@ -34,6 +34,7 @@
     <string name="recovery_wizard_stored">I stored the paper in a safe place</string>
     <string name="apps">Apps</string>
     <string name="config">Config</string>
+    <string name="home">Home</string>
     <string name="not_device_owner">No Device Owner privileges</string>
     <string name="config_device_owner">Get in settings</string>
     <string name="device_owner_state">Owner privileges</string>
@@ -62,13 +63,8 @@
     <string name="remove_users">Remove users</string>
     
     <string name="search_apps">Search apps…</string>
-    <string name="blocked">Blocked</string>
-    <string name="block">Block</string>
-    <string name="unblock">Unblock</string>
-    <string name="allow_uninstall">Allow Uninstall</string>
     <string name="apply_restrictions">Apply restrictions</string>
     <string name="recommended_configs">Recommended restrictions</string>
-    <string name="other_restrictions">Other restrictions</string>
     <string name="disallow_config_vpn">Prohibit VPN</string>
     <string name="disallow_config_private_dns">Prohibit changing private DNS</string>
     <string name="disallow_factory_reset">Prohibit factory reset</string>
@@ -195,7 +191,6 @@
     <string name="apply_to_apps">Apply to apps</string>
     <string name="select_apps">Select apps</string>
     <string name="no_apps">No apps selected</string>
-    <string name="blocked_words_list">Blocked words list</string>
     <string name="one_word_per_line">One word per line</string>
     <string name="show_system_apps">Show system apps</string>
 
@@ -205,7 +200,6 @@
     <string name="change_recovery_code">Change recovery code</string>
     <string name="change_recovery_code_desc">Generate a new recovery code to replace the current one</string>
     <string name="shuffle_keyboard_backspace">⌫ Delete last</string>
-    <string name="search_restrictions">Search restrictions…</string>
     <string name="list_title">List title</string>
     <string name="sites_lines">Sites (one per line)</string>
     <string name="active_blocking">Active blocking</string>
@@ -228,13 +222,9 @@
     <string name="forced_removal_finish_dialog_text">The 48-hour period has passed. Do you want to remove all restrictions now?</string>
     <string name="time_minutes">%1$dmin</string>
     <string name="time_hours_minutes">%1$dh %2$dmin</string>
-    <string name="explicit_content">Explicit content</string>
-    <string name="suspend">Suspend</string>
-    <string name="unsuspend">Unsuspend</string>
 
     <string name="access_app">Open Sarim</string>
     <string name="math_challenge_title">Solve the problems</string>
-    <string name="word_challenge_title">Type the words</string>
     <string name="challenge_error">Incorrect, starting over…</string>
     <string name="challenge_step">Challenge %1$d of %2$d</string>
     <string name="challenge_give_up">I don\'t want to open it anymore</string>
@@ -355,6 +345,10 @@
     <string name="commitment_release_finish_title">End the commitment now?</string>
     <string name="commitment_release_finish_text">The 7-day waiting period is over. Enter the recovery code to stop the commitment. Protection stays on; only the settings freeze is lifted.</string>
     <string name="commitment_release_finish_confirm">End commitment</string>
+    <string name="commitment_change_title">Change commitment</string>
+    <string name="commitment_change_dialog_text">%1$d days left. Pick a longer period — it starts today. A commitment can only be extended, never shortened.</string>
+    <string name="commitment_change_dialog_text_open">Pick a commitment period. It starts today.</string>
+    <string name="commitment_change_confirm">Update commitment</string>
 
     <!-- Protection setup -->
     <string name="protection_setup_title">Set up your protection</string>
@@ -375,12 +369,20 @@
     <string name="protection_layers_title">Layers, all on</string>
     <string name="mandatory_restrictions_summary">VPN, private DNS, sideloading, uninstalling, app control, safe boot, USB debugging and date/time changes are always restricted.</string>
     <string name="protection_incomplete_title">Protection is incomplete</string>
+    <string name="protection_active_title">Protection is active</string>
+    <string name="home_active_body">Every layer is on. Adult content is blocked across your device.</string>
+    <string name="home_incomplete_body">Some protection layers need attention. Open Protection to fix them.</string>
+    <string name="home_status_title">Status</string>
     <string name="protection_needs_owner">Device owner is not granted: the system restrictions and the private DNS cannot be applied.</string>
     <string name="protection_needs_accessibility">Advanced blocking is off: images, typed words and blocked apps are not being checked.</string>
-    <string name="protection_needs_owner_short">Needs device owner</string>
     <string name="protection">Protection</string>
-    <string name="uninstall_blocked">Uninstall blocked</string>
-    <string name="keyboard_description">Changes the on-screen keyboard used for the recovery code and the word challenge. A shuffled layout makes a half-remembered code much harder to type from memory.</string>
+    <string name="keyboard_description">Changes the on-screen keyboard used for the recovery code. A shuffled layout makes a half-remembered code much harder to type from memory.</string>
     <string name="commitment_settings_locked_title">Settings are locked</string>
     <string name="commitment_settings_locked_body">Your commitment is still running. Adult-content protection cannot be changed, weakened or turned off until it ends — the recovery code does not override it. To end it early, place a release order in Config and wait 7 days.</string>
+
+    <!-- Visual blocking edits -->
+    <string name="unlock_to_change">Enter recovery code to change settings</string>
+    <string name="save_changes">Save</string>
+    <string name="settings_saved">Settings saved</string>
+
 </resources>

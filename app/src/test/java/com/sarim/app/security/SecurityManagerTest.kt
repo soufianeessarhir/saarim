@@ -121,11 +121,22 @@ class SecurityManagerTest {
     // ------------------------------------------------------------------ access challenges
 
     @Test
-    fun accessChallenges_default_to_words() {
+    fun accessChallenges_default_to_none() {
         context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE).edit()
             .remove("access_challenges").commit()
         assertEquals(
-            listOf(SecurityManager.ChallengeType.WORDS),
+            emptyList<SecurityManager.ChallengeType>(),
+            SecurityManager.getAccessChallenges(context)
+        )
+    }
+
+    @Test
+    fun accessChallenges_ignore_a_word_challenge_left_by_an_older_build() {
+        context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE).edit()
+            .putStringSet("access_challenges", setOf("WORDS"))
+            .commit()
+        assertEquals(
+            emptyList<SecurityManager.ChallengeType>(),
             SecurityManager.getAccessChallenges(context)
         )
     }

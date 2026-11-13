@@ -93,9 +93,9 @@ object CommitmentLock {
 
     /**
      * Starts a commitment of [durationDays], a permanent one when it is null, or a regular
-     * (unlocked) setup when it is 0. A commitment is never restarted or shortened — callers get
-     * the existing deadline back instead. Returns the wall-clock instant it runs out, or 0 for a
-     * permanent or regular setup.
+     * (unlocked) setup when it is 0. A commitment is never restarted or shortened here — callers
+     * get the existing deadline back instead; only [changeDuration] can extend one. Returns the
+     * wall-clock instant it runs out, or 0 for a permanent or regular setup.
      */
     fun start(context: Context, durationDays: Int?): Long {
         if (hasStarted(context)) return endTimeMillis(context)
@@ -283,6 +283,60 @@ object CommitmentLock {
             remove(KEY_DISABLE_REQUEST_RTC)
             remove(KEY_DISABLE_REQUEST_ELAPSED)
             remove(KEY_DISABLE_REQUEST_LAST_SEEN_RTC)
+        }
+        MandatoryProtection.enforce(context)
+        return true
+    }
+
+    // ------------------------------------------------------------------ changing the commitment
+
+    /**
+     * True when the commitment can be changed at all. A permanent commitment is already the
+     * strongest choice, and a fresh install has not started one yet (the setup screen handles
+     * that choice). Regular, an ended period and a running timed commitment can all be changed.
+     */
+    fun canChangeDuration(context: Context): Boolean = hasStarted(context) && !isPermanent(context)
+
+    /**
+     * Moves the commitment to [durationDays], or makes it permanent when that is null. Only
+     * changes that add time are accepted: a running timed commitment may be extended (the new
+     * period is counted from now, so 180 days picked with 90 left gives 180 more days), a Regular
+     * setup or an ended commitment may become a real commitment, and any timed commitment may be
+     * made permanent. Shortening, switching away from permanent, and selecting Regular here are
+     * refused — that is what makes it a commitment rather than a setting.
+     *
+     * Any pending release order is dropped, because it was placed against the old deadline.
+     * Returns false when nothing was written.
+     */
+    fun changeDuration(context: Context, durationDays: Int?): Boolean {
+        if (!canChangeDuration(context)) return false
+
+        val duration = when {
+            durationDays == null -> PERMANENT
+            durationDays <= 0 -> return false
+            else -> clampDurationDays(durationDays) * DAY_MS
+        }
+
+        if (duration != PERMANENT) {
+            val requestedDays = durationDays ?: return false
+            // The wall clock is the unit the user picked; elapsed time is close enough here and
+            // the comparison errs on the strict side by a few milliseconds at worst.
+            if (isLocked(context) && requestedDays * DAY_MS <= remainingMillis(context)) return false
+        }
+
+        val nowRtc = System.currentTimeMillis()
+        prefs(context).edit {
+            putLong(KEY_START_RTC, nowRtc)
+            putLong(KEY_START_ELAPSED, SystemClock.elapsedRealtime())
+            putLong(KEY_DURATION_MS, duration)
+            putLong(KEY_LAST_SEEN_RTC, nowRtc)
+            remove(KEY_DISABLE_REQUEST_RTC)
+            remove(KEY_DISABLE_REQUEST_ELAPSED)
+            remove(KEY_DISABLE_REQUEST_LAST_SEEN_RTC)
+            remove(LEGACY_KEY_START_RTC)
+            remove(LEGACY_KEY_START_ELAPSED)
+            remove(LEGACY_KEY_DURATION_MS)
+            remove(LEGACY_KEY_LAST_SEEN_RTC)
         }
         MandatoryProtection.enforce(context)
         return true

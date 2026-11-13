@@ -41,7 +41,6 @@ import com.sarim.app.screens.challenges.ChallengeScaffold
 import com.sarim.app.screens.challenges.MathChallenge
 import com.sarim.app.screens.challenges.ReadingChallenge
 import com.sarim.app.screens.challenges.TetrisChallenge
-import com.sarim.app.screens.challenges.WordChallenge
 import com.sarim.app.screens.common.ApkUpdateDialog
 import com.sarim.app.screens.common.ApkUpdateIntroDialog
 import com.sarim.app.security.CommitmentLock
@@ -165,7 +164,6 @@ fun LockScreen(onAuthenticated: () -> Unit) {
                 key(challengeIndex) {
                     when (pending[challengeIndex]) {
                         SecurityManager.ChallengeType.MATH -> MathChallenge(onSuccess = ::completeCurrent)
-                        SecurityManager.ChallengeType.WORDS -> WordChallenge(onSuccess = ::completeCurrent)
                         SecurityManager.ChallengeType.READING -> ReadingChallenge(onSuccess = ::completeCurrent)
                         SecurityManager.ChallengeType.TETRIS -> TetrisChallenge(
                             minutes = SecurityManager.getTetrisMinutes(context),

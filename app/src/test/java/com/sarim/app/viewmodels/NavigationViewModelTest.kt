@@ -12,10 +12,10 @@ import org.junit.Test
 class NavigationViewModelTest {
 
     @Test
-    fun `starts on the protection tab`() {
+    fun `starts on the home tab`() {
         val navigation = NavigationViewModel()
 
-        assertEquals(NavigationViewModel.SCREEN_PROTECTION, navigation.selectedTab())
+        assertEquals(NavigationViewModel.SCREEN_HOME, navigation.selectedTab())
     }
 
     @Test
@@ -27,8 +27,8 @@ class NavigationViewModelTest {
     fun `root screens match the three bottom bar tabs`() {
         assertEquals(
             listOf(
+                NavigationViewModel.SCREEN_HOME,
                 NavigationViewModel.SCREEN_PROTECTION,
-                NavigationViewModel.SCREEN_APPS,
                 NavigationViewModel.SCREEN_CONFIG
             ),
             NavigationViewModel.ROOT_SCREENS
@@ -43,7 +43,7 @@ class NavigationViewModelTest {
         assertEquals(NavigationViewModel.SCREEN_BLOCKED_WORDS, navigation.selectedTab())
 
         assertTrue(navigation.goBack())
-        assertEquals(NavigationViewModel.SCREEN_PROTECTION, navigation.selectedTab())
+        assertEquals(NavigationViewModel.SCREEN_HOME, navigation.selectedTab())
     }
 
     @Test
@@ -62,6 +62,6 @@ class NavigationViewModelTest {
         val navigation = NavigationViewModel()
 
         assertFalse(navigation.goBack())
-        assertEquals(NavigationViewModel.SCREEN_PROTECTION, navigation.selectedTab())
+        assertEquals(NavigationViewModel.SCREEN_HOME, navigation.selectedTab())
     }
 }

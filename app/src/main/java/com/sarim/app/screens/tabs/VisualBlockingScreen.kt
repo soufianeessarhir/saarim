@@ -24,6 +24,7 @@ import com.sarim.app.data.VisualBlockingSettings
 import com.sarim.app.screens.common.RecoveryGateDialog
 import com.sarim.app.screens.common.rememberRecoveryGate
 import com.sarim.app.viewmodels.VisualBlockingViewModel
+import kotlinx.coroutines.delay
 
 /**
  * Visual blocking, shown as what it is: a layer that is always on. There is no switch — the only
@@ -33,8 +34,16 @@ import com.sarim.app.viewmodels.VisualBlockingViewModel
 @Composable
 fun VisualBlockingScreen(viewModel: VisualBlockingViewModel = viewModel()) {
     var showAppSelectionDialog by remember { mutableStateOf(false) }
+    var settingsSaved by remember { mutableStateOf(false) }
     val recoveryGate = rememberRecoveryGate()
     val sessionActive = recoveryGate.isSessionActive
+
+    LaunchedEffect(settingsSaved) {
+        if (settingsSaved) {
+            delay(2000)
+            settingsSaved = false
+        }
+    }
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item {
@@ -44,6 +53,37 @@ fun VisualBlockingScreen(viewModel: VisualBlockingViewModel = viewModel()) {
                 modifier = Modifier.padding(16.dp)
             )
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+        }
+
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (sessionActive) {
+                    Button(onClick = {
+                        viewModel.saveSettings()
+                        settingsSaved = true
+                    }) {
+                        Text(stringResource(R.string.save_changes))
+                    }
+                } else {
+                    Button(onClick = { recoveryGate.run {} }) {
+                        Text(stringResource(R.string.unlock_to_change))
+                    }
+                }
+            }
+            if (settingsSaved) {
+                Text(
+                    stringResource(R.string.settings_saved),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
         }
 
         item {

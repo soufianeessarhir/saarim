@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Logout
-import androidx.compose.material.icons.filled.AppBlocking
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LockClock
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Security
@@ -154,13 +154,13 @@ class MainActivity : LocalizedActivity() {
                         if (!SecurityManager.isRecoveryCodeSet(this) || !authViewModel.authenticated) return@Scaffold
 
                         val tabs = listOf(
+                            Triple(NavigationViewModel.SCREEN_HOME, R.string.home, Icons.Outlined.Home),
                             Triple(NavigationViewModel.SCREEN_PROTECTION, R.string.protection, Icons.Outlined.Security),
-                            Triple(NavigationViewModel.SCREEN_APPS, R.string.apps, Icons.Filled.AppBlocking),
                             Triple(NavigationViewModel.SCREEN_CONFIG, R.string.config, Icons.Outlined.Settings)
                         )
 
                         val selectedBaseTab = when (currentScreen) {
-                            NavigationViewModel.SCREEN_APPS -> NavigationViewModel.SCREEN_APPS
+                            NavigationViewModel.SCREEN_HOME -> NavigationViewModel.SCREEN_HOME
                             NavigationViewModel.SCREEN_CONFIG,
                             NavigationViewModel.SCREEN_SETUP_DEVICE_OWNER,
                             NavigationViewModel.SCREEN_SYSTEM_RESTRICTIONS,
@@ -222,7 +222,7 @@ class MainActivity : LocalizedActivity() {
 
                         else -> Box(modifier = Modifier.padding(innerPadding)) {
                             when (currentScreen) {
-                                NavigationViewModel.SCREEN_APPS -> AppsTab()
+                                NavigationViewModel.SCREEN_HOME -> HomeTab()
                                 NavigationViewModel.SCREEN_CONFIG -> ConfigTab()
                                 NavigationViewModel.SCREEN_SETUP_DEVICE_OWNER -> SetupDeviceOwnerPrivileges()
                                 NavigationViewModel.SCREEN_SYSTEM_RESTRICTIONS -> RestrictionsTab()
@@ -230,7 +230,7 @@ class MainActivity : LocalizedActivity() {
                                 NavigationViewModel.SCREEN_BLOCKED_WORDS -> BlockedWordsScreen()
                                 NavigationViewModel.SCREEN_VISUAL_BLOCKING -> VisualBlockingScreen()
                                 // Never render nothing: an unknown route falls back to the home tab.
-                                else -> ProtectionTab()
+                                else -> HomeTab()
                             }
                         }
                     }

@@ -67,34 +67,6 @@ fun BlockedWordsScreen(
                         }
                     )
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            stringResource(R.string.blocked_words_list),
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                        )
-                        TextButton(
-                            onClick = { recoveryGate.run {} },
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            enabled = !recoveryGate.isSessionActive
-                        ) {
-                            Icon(Icons.Outlined.Edit, null, modifier = Modifier.size(18.dp))
-                        }
-                    }
-
-                    OutlinedTextField(
-                        value = viewModel.blockedWordsText,
-                        onValueChange = {
-                            viewModel.updateWords(it)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 256.dp, max = 256.dp)
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        placeholder = { Text(stringResource(R.string.word_hint)) },
-                        supportingText = { Text(stringResource(R.string.one_word_per_line)) },
-                        enabled = recoveryGate.isSessionActive
-                    )
                 }
             }
         }

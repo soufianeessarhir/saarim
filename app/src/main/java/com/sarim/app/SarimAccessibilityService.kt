@@ -28,7 +28,6 @@ import com.sarim.app.activities.AccessibilityRequestActivity
 import com.sarim.app.activities.BlockedWordActivity
 import com.sarim.app.activities.NsfwContentBlockedActivity
 import com.sarim.app.data.ApkUpdateInstaller
-import com.sarim.app.data.AppRepository
 import com.sarim.app.data.BrowserRestrictionsManager
 import com.sarim.app.data.PlayStoreRatingFetcher
 import com.sarim.app.data.VisualBlockingSettings
@@ -118,9 +117,6 @@ class SarimAccessibilityService : AccessibilityService() {
             val packageName = intent.data?.encodedSchemeSpecificPart ?: return
 
             val isUpdate = intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
-            if (!isUpdate) {
-                AppRepository.reapplyHiddenIfNeeded(packageName)
-            }
 
             val manager = browserManager
             manager.invalidateTorCache()

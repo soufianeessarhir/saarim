@@ -7,8 +7,5 @@ data class AppItem(
     val packageName: String,
     val icon: Drawable,
     val isSystem: Boolean,
-    val isHidden: Boolean = false,
-    val isUninstallBlocked: Boolean = false,
-    val isSuspended: Boolean = false,
-    val hasExplicitContent: Boolean = false
+    val isSuspended: Boolean = false
 )

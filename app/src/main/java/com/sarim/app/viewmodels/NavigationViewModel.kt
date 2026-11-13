@@ -30,8 +30,8 @@ class NavigationViewModel : ViewModel() {
     }
 
     companion object {
+        const val SCREEN_HOME = "home"
         const val SCREEN_PROTECTION = "protection"
-        const val SCREEN_APPS = "apps"
         const val SCREEN_CONFIG = "config"
 
         const val SCREEN_SETUP_DEVICE_OWNER = "setup_device_owner"
@@ -41,8 +41,8 @@ class NavigationViewModel : ViewModel() {
         const val SCREEN_VISUAL_BLOCKING = "visual_blocking"
 
         /** Screens the bottom bar switches between; navigating to one clears the back stack. */
-        val ROOT_SCREENS = listOf(SCREEN_PROTECTION, SCREEN_APPS, SCREEN_CONFIG)
+        val ROOT_SCREENS = listOf(SCREEN_HOME, SCREEN_PROTECTION, SCREEN_CONFIG)
 
-        val DEFAULT_SCREEN = SCREEN_PROTECTION
+        val DEFAULT_SCREEN = SCREEN_HOME
     }
 }

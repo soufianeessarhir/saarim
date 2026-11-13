@@ -18,7 +18,7 @@ import androidx.core.content.edit
 class SecurityManager {
 
     enum class ChallengeType {
-        MATH, WORDS, TETRIS, READING
+        MATH, TETRIS, READING
     }
 
     /** Where the reading challenge takes its texts from. */
@@ -114,13 +114,15 @@ class SecurityManager {
         }
 
         /**
-         * What has to be solved after the biometric prompt and before the settings open. Defaults
-         * to the 32-word challenge: entry has to cost something, or the lock screen is decoration.
+         * What has to be solved after the biometric prompt and before the settings open. The
+         * default is none: biometrics (or the device credential) is the gate, and no stock
+         * challenge screen is shown on every unlock. Stored challenge selections from older
+         * builds still run; an unknown or removed type is ignored.
          */
         fun getAccessChallenges(context: Context): List<ChallengeType> {
             val prefs = context.getSharedPreferences("security_prefs", Context.MODE_PRIVATE)
             val stored = prefs.getStringSet("access_challenges", null)
-                ?: return listOf(ChallengeType.WORDS)
+                ?: return emptyList()
             return stored
                 .mapNotNull { runCatching { ChallengeType.valueOf(it) }.getOrNull() }
                 .sortedBy { it.ordinal }

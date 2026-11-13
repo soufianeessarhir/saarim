@@ -51,6 +51,7 @@
     <string name="recovery_wizard_stored">Guardei o papel em um local seguro</string>
     <string name="apps">Apps</string>
     <string name="config">Config</string>
+    <string name="home">Início</string>
     <string name="not_device_owner">Sem privilégios de Dono do dispositivo</string>
     <string name="config_device_owner">Obter na config.</string>
     <string name="device_owner_state">Privilégios de dono</string>
@@ -79,13 +80,8 @@
     <string name="remove_users">Remover usuários</string>
     
     <string name="search_apps">Pesquisar apps…</string>
-    <string name="blocked">Bloqueado</string>
-    <string name="block">Bloquear</string>
-    <string name="unblock">Desbloquear</string>
-    <string name="allow_uninstall">Permitir Desinstalar</string>
     <string name="apply_restrictions">Aplicar restrições</string>
     <string name="recommended_configs">Restrições recomendadas</string>
-    <string name="other_restrictions">Outras restrições</string>
     <string name="disallow_config_vpn">Proibir VPN</string>
     <string name="disallow_config_private_dns">Proibir alterar DNS privado</string>
     <string name="disallow_factory_reset">Proibir restauração de fábrica</string>
@@ -212,7 +208,6 @@
     <string name="apply_to_apps">Aplicar aos apps</string>
     <string name="select_apps">Selecionar apps</string>
     <string name="no_apps">Nenhum app selecionado</string>
-    <string name="blocked_words_list">Lista de palavras bloqueadas</string>
     <string name="one_word_per_line">Uma palavra por linha</string>
     <string name="show_system_apps">Mostrar apps do sistema</string>
 
@@ -222,7 +217,6 @@
     <string name="change_recovery_code">Alterar código de recuperação</string>
     <string name="change_recovery_code_desc">Gera um novo código de recuperação para substituir o atual</string>
     <string name="shuffle_keyboard_backspace">⌫ Apagar último</string>
-    <string name="search_restrictions">Buscar restrições…</string>
     <string name="list_title">Título da lista</string>
     <string name="sites_lines">Sites (um por linha)</string>
     <string name="active_blocking">Bloqueio ativo</string>
@@ -245,13 +239,9 @@
     <string name="forced_removal_finish_dialog_text">O período de 48h passou. Deseja remover todas as restrições agora?</string>
     <string name="time_minutes">%1$dmin</string>
     <string name="time_hours_minutes">%1$dh %2$dmin</string>
-    <string name="explicit_content">Conteúdo explícito</string>
-    <string name="suspend">Suspender</string>
-    <string name="unsuspend">Retirar suspensão</string>
 
     <string name="access_app">Acessar Sarim</string>
     <string name="math_challenge_title">Resolva os problemas</string>
-    <string name="word_challenge_title">Digite as palavras</string>
     <string name="challenge_error">Incorreto, reiniciando…</string>
     <string name="challenge_step">Desafio %1$d de %2$d</string>
     <string name="challenge_give_up">Não quero mais abrir</string>
@@ -359,6 +349,10 @@
     <string name="commitment_release_finish_title">Encerrar o compromisso agora?</string>
     <string name="commitment_release_finish_text">A espera de 7 dias terminou. Digite o código de recuperação para encerrar o compromisso. A proteção continua ativa; apenas o bloqueio das configurações é removido.</string>
     <string name="commitment_release_finish_confirm">Encerrar compromisso</string>
+    <string name="commitment_change_title">Alterar compromisso</string>
+    <string name="commitment_change_dialog_text">Restam %1$d dias. Escolha um período maior — ele começa hoje. Um compromisso só pode ser estendido, nunca encurtado.</string>
+    <string name="commitment_change_dialog_text_open">Escolha um período de compromisso. Ele começa hoje.</string>
+    <string name="commitment_change_confirm">Atualizar compromisso</string>
 
     <!-- Protection setup -->
     <string name="protection_setup_title">Configure sua proteção</string>
@@ -379,12 +373,20 @@
     <string name="protection_layers_title">Camadas, todas ativas</string>
     <string name="mandatory_restrictions_summary">VPN, DNS privado, instalação de fora da loja, desinstalação, controle de apps, modo seguro, depuração USB e alteração de data/hora são sempre restritos.</string>
     <string name="protection_incomplete_title">A proteção está incompleta</string>
+    <string name="protection_active_title">A proteção está ativa</string>
+    <string name="home_active_body">Todas as camadas estão ativas. O conteúdo adulto está bloqueado no seu dispositivo.</string>
+    <string name="home_incomplete_body">Algumas camadas de proteção precisam de atenção. Abra a aba Proteção para corrigi-las.</string>
+    <string name="home_status_title">Status</string>
     <string name="protection_needs_owner">O proprietário do dispositivo não está concedido: as restrições do sistema e o DNS privado não podem ser aplicados.</string>
     <string name="protection_needs_accessibility">O bloqueio avançado está desligado: imagens, palavras digitadas e apps bloqueados não estão sendo verificados.</string>
-    <string name="protection_needs_owner_short">Requer proprietário do dispositivo</string>
     <string name="protection">Proteção</string>
-    <string name="uninstall_blocked">Desinstalação bloqueada</string>
-    <string name="keyboard_description">Altera o teclado na tela usado para o código de recuperação e o desafio de palavras. Um layout embaralhado torna um código lembrado pela metade muito mais difícil de digitar de memória.</string>
+    <string name="keyboard_description">Altera o teclado na tela usado para o código de recuperação. Um layout embaralhado torna um código lembrado pela metade muito mais difícil de digitar de memória.</string>
     <string name="commitment_settings_locked_title">As configurações estão travadas</string>
     <string name="commitment_settings_locked_body">Seu compromisso ainda está em andamento. A proteção contra conteúdo adulto não pode ser alterada, enfraquecida ou desligada até ele terminar — o código de recuperação não se sobrepõe a isso. Para encerrá-lo antes, faça um pedido de encerramento na aba Config e aguarde 7 dias.</string>
+
+    <!-- Visual blocking edits -->
+    <string name="unlock_to_change">Insira o código de recuperação para alterar as configurações</string>
+    <string name="save_changes">Salvar</string>
+    <string name="settings_saved">Configurações salvas</string>
+
 </resources>

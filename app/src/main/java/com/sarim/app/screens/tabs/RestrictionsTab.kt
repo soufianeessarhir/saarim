@@ -1,6 +1,5 @@
 package com.sarim.app.screens.tabs
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,7 +11,6 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -60,15 +58,6 @@ fun RestrictionsTab(
                     defaultExpanded = true
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                RestrictionAccordion(
-                    title = stringResource(R.string.other_restrictions),
-                    keys = restrictionsViewModel.otherKeys,
-                    viewModel = restrictionsViewModel,
-                    defaultExpanded = false,
-                    showSearch = true
-                )
             }
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -99,19 +88,14 @@ fun RestrictionsTab(
 }
 
 
-@SuppressLint("DiscouragedApi", "LocalContextResourcesRead")
-// The reflection into UserManager is the point of this screen: restrictions are listed by the
-// platform field names. The lookup is one-time per list, not a hot path.
 @Composable
 private fun RestrictionAccordion(
     title: String,
     keys: List<String>,
     viewModel: RestrictionsViewModel,
-    defaultExpanded: Boolean,
-    showSearch: Boolean = false
+    defaultExpanded: Boolean
 ) {
     var expanded by remember { mutableStateOf(defaultExpanded) }
-    var searchQuery by remember { mutableStateOf("") }
     val context = LocalContext.current
 
     val labelMap = remember(keys) {
@@ -126,16 +110,7 @@ private fun RestrictionAccordion(
     // labels without calling Context.getString from a remember block.
     val labels = keys.associateWith { key -> labelMap[key]?.let { stringResource(it) } ?: key }
 
-    val filteredKeys = if (searchQuery.isEmpty()) {
-        keys
-    } else {
-        keys.filter { key ->
-            val label = labels[key] ?: key
-            label.contains(searchQuery, ignoreCase = true) || key.contains(searchQuery, ignoreCase = true)
-        }
-    }
-
-    val isAllEnabled = viewModel.isAllDraftsEnabled(filteredKeys)
+    val isAllEnabled = viewModel.isAllDraftsEnabled(keys)
 
     ElevatedCard(
         modifier = Modifier.fillMaxWidth()
@@ -150,7 +125,7 @@ private fun RestrictionAccordion(
             ) {
                 Checkbox(
                     checked = isAllEnabled,
-                    onCheckedChange = { viewModel.toggleAllDrafts(filteredKeys, it) }
+                    onCheckedChange = { viewModel.toggleAllDrafts(keys, it) }
                 )
                 Text(
                     text = title,
@@ -172,20 +147,7 @@ private fun RestrictionAccordion(
                 ) {
                     HorizontalDivider(modifier = Modifier.padding(bottom = 8.dp))
                     
-                    if (showSearch) {
-                        OutlinedTextField(
-                            value = searchQuery,
-                            onValueChange = { searchQuery = it },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp),
-                            placeholder = { Text(stringResource(R.string.search_restrictions)) },
-                            leadingIcon = { Icon(Icons.Default.Search, null) },
-                            singleLine = true
-                        )
-                    }
-
-                    filteredKeys.forEach { key ->
+                    keys.forEach { key ->
                         RestrictionItem(
                             label = labels[key] ?: key,
                             value = key,

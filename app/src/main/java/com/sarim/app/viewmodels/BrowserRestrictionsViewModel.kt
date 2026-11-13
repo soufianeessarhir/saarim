@@ -3,12 +3,15 @@ package com.sarim.app.viewmodels
 import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.sarim.app.SarimApplication
 import androidx.core.content.edit
 import com.sarim.app.data.AppRepository
 import com.sarim.app.data.BrowserRestrictionsManager
 import com.sarim.app.models.AppItem
 import com.sarim.app.models.BlockedList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -59,6 +62,13 @@ class BrowserRestrictionsViewModel : ViewModel() {
                 targetList.add(BlockedList(id, title, sites))
             }
         } catch (e: Exception) { e.printStackTrace() }
+    }
+
+    fun setBrowserSuspended(packageName: String, suspended: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching { AppRepository.setAppSuspended(packageName, suspended) }
+                .onFailure { it.printStackTrace() }
+        }
     }
 
     fun saveOrUpdateList(id: String?, title: String, sitesString: String) {

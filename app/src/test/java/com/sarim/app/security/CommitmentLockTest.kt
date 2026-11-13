@@ -142,6 +142,88 @@ class CommitmentLockTest {
         assertTrue(CommitmentLock.isRegular(context))
     }
 
+    // ------------------------------------------------------------------ changing the commitment
+
+    @Test
+    fun an_active_commitment_can_be_extended() {
+        CommitmentLock.start(context, 90)
+        val firstEnd = CommitmentLock.endTimeMillis(context)
+
+        assertTrue(CommitmentLock.canChangeDuration(context))
+        assertTrue(CommitmentLock.changeDuration(context, 180))
+
+        assertEquals(180, CommitmentLock.durationDays(context))
+        assertTrue("the deadline should move further away", CommitmentLock.endTimeMillis(context) > firstEnd)
+        assertTrue(CommitmentLock.isLocked(context))
+    }
+
+    @Test
+    fun a_shorter_commitment_is_refused() {
+        CommitmentLock.start(context, 365)
+        val firstEnd = CommitmentLock.endTimeMillis(context)
+
+        assertFalse(CommitmentLock.changeDuration(context, 90))
+
+        assertEquals(365, CommitmentLock.durationDays(context))
+        assertEquals(firstEnd, CommitmentLock.endTimeMillis(context))
+    }
+
+    @Test
+    fun a_regular_setup_can_become_a_commitment() {
+        CommitmentLock.start(context, 0)
+        assertTrue(CommitmentLock.canChangeDuration(context))
+
+        assertTrue(CommitmentLock.changeDuration(context, 180))
+
+        assertFalse(CommitmentLock.isRegular(context))
+        assertEquals(180, CommitmentLock.durationDays(context))
+        assertTrue(CommitmentLock.isLocked(context))
+    }
+
+    @Test
+    fun a_permanent_commitment_cannot_be_changed() {
+        CommitmentLock.start(context, null)
+
+        assertFalse(CommitmentLock.canChangeDuration(context))
+        assertFalse(CommitmentLock.changeDuration(context, 90))
+        assertTrue(CommitmentLock.isPermanent(context))
+    }
+
+    @Test
+    fun an_ended_commitment_can_be_started_again() {
+        CommitmentLock.start(context, 90)
+        CommitmentLock.requestDisable(context)
+
+        val served = 8 * dayMs
+        securityPrefs.edit(commit = true) {
+            putLong("commitment_release_request_rtc", System.currentTimeMillis() - served)
+            putLong(
+                "commitment_release_request_elapsed",
+                android.os.SystemClock.elapsedRealtime() - served
+            )
+        }
+        assertTrue(CommitmentLock.stop(context))
+        assertTrue(CommitmentLock.isStopped(context))
+
+        assertTrue(CommitmentLock.changeDuration(context, 90))
+
+        assertFalse(CommitmentLock.isStopped(context))
+        assertTrue(CommitmentLock.isLocked(context))
+        assertEquals(90, CommitmentLock.durationDays(context))
+    }
+
+    @Test
+    fun extending_cancels_a_pending_release_order() {
+        CommitmentLock.start(context, 90)
+        CommitmentLock.requestDisable(context)
+
+        assertTrue(CommitmentLock.changeDuration(context, 180))
+
+        assertFalse(CommitmentLock.isDisableRequested(context))
+        assertEquals(0L, CommitmentLock.disableRequestRemainingMillis(context))
+        assertTrue(CommitmentLock.isLocked(context))
+    }
+
     @Test
     fun forced_removal_is_not_offered_for_a_permanent_or_regular_setup() {
         CommitmentLock.start(context, null)

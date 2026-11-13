@@ -3,12 +3,14 @@ package com.sarim.app.screens.tabs
 import android.app.admin.DevicePolicyManager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Accessibility
 import androidx.compose.material.icons.outlined.Adb
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Dns
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ImageSearch
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Keyboard
@@ -68,6 +70,7 @@ fun ConfigTab(
     var showCancelForcedRemovalDialog by remember { mutableStateOf(false) }
     var showFinishForcedRemovalDialog by remember { mutableStateOf(false) }
     var confirmForcedRemoval by remember { mutableStateOf(false) }
+    var showCommitmentDialog by remember { mutableStateOf(false) }
     var showRequestReleaseDialog by remember { mutableStateOf(false) }
     var showCancelReleaseDialog by remember { mutableStateOf(false) }
     var showFinishReleaseDialog by remember { mutableStateOf(false) }
@@ -93,6 +96,7 @@ fun ConfigTab(
     val stopped = CommitmentLock.isStopped(context)
     val commitmentRemaining = CommitmentLock.remainingMillis(context)
     val commitmentLocked = permanent || commitmentRemaining > 0L
+    val canChangeCommitment = CommitmentLock.canChangeDuration(context)
     val releaseRequested = CommitmentLock.isDisableRequested(context)
     val releaseRemaining by remember {
         mutableLongStateOf(CommitmentLock.disableRequestRemainingMillis(context))
@@ -128,7 +132,13 @@ fun ConfigTab(
                             }
                         )
                     },
-                    leadingContent = { Icon(Icons.Outlined.Security, "") }
+                    leadingContent = { Icon(Icons.Outlined.Security, "") },
+                    trailingContent = if (canChangeCommitment) {
+                        { Icon(Icons.Outlined.Edit, stringResource(R.string.commitment_change_title)) }
+                    } else null,
+                    modifier = if (canChangeCommitment) {
+                        Modifier.clickable { showCommitmentDialog = true }
+                    } else Modifier
                 )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
             }
@@ -355,6 +365,17 @@ fun ConfigTab(
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
+
+    if (showCommitmentDialog) {
+        CommitmentChangeDialog(
+            remainingMillis = commitmentRemaining,
+            onDismiss = { showCommitmentDialog = false },
+            onApply = { days ->
+                showCommitmentDialog = false
+                if (CommitmentLock.changeDuration(context, days)) activity?.recreate()
+            }
         )
     }
 
@@ -607,6 +628,92 @@ fun ConfigTab(
 private const val DAY_MS = 24L * 60 * 60 * 1000
 
 private enum class CommitmentReleaseAction { REQUEST, FINISH }
+
+/**
+ * Extends a commitment. Only longer periods are offered: the saved deadline can move further
+ * away, never closer. The new period is counted from today, so the dialog states how many days
+ * are left before the user picks.
+ */
+@Composable
+private fun CommitmentChangeDialog(
+    remainingMillis: Long,
+    onDismiss: () -> Unit,
+    onApply: (Int?) -> Unit
+) {
+    val daysLeft = if (remainingMillis > 0L && remainingMillis != Long.MAX_VALUE) {
+        ((remainingMillis + DAY_MS - 1) / DAY_MS).toInt()
+    } else 0
+    val locked = remainingMillis > 0L
+
+    // 0 = nothing picked yet, -1 = permanent, anything else = that many days.
+    var selected by remember { mutableIntStateOf(0) }
+
+    fun allowed(days: Int) = !locked || days > daysLeft
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.commitment_change_title)) },
+        text = {
+            Column {
+                Text(
+                    if (locked) {
+                        stringResource(R.string.commitment_change_dialog_text, daysLeft)
+                    } else {
+                        stringResource(R.string.commitment_change_dialog_text_open)
+                    }
+                )
+                Spacer(Modifier.height(12.dp))
+                CommitmentLock.DURATION_PRESETS_DAYS.forEach { days ->
+                    val enabled = allowed(days)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .selectable(
+                                selected = selected == days,
+                                enabled = enabled,
+                                onClick = { selected = days }
+                            )
+                            .padding(vertical = 6.dp)
+                    ) {
+                        RadioButton(selected = selected == days, onClick = null, enabled = enabled)
+                        Text(
+                            pluralStringResource(R.plurals.commitment_duration_days, days, days),
+                            color = if (enabled) MaterialTheme.colorScheme.onSurface
+                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                            modifier = Modifier.padding(start = 10.dp)
+                        )
+                    }
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .selectable(
+                            selected = selected == -1,
+                            onClick = { selected = -1 }
+                        )
+                        .padding(vertical = 6.dp)
+                ) {
+                    RadioButton(selected = selected == -1, onClick = null)
+                    Text(
+                        stringResource(R.string.commitment_duration_permanent),
+                        modifier = Modifier.padding(start = 10.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = selected != 0,
+                onClick = { onApply(if (selected == -1) null else selected) }
+            ) { Text(stringResource(R.string.commitment_change_confirm)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+        }
+    )
+}
 
 /**
  * The private-DNS picker, limited to family/adult-filtering resolvers. There is deliberately no

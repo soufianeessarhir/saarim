@@ -1,6 +1,5 @@
 package com.sarim.app.viewmodels
 
-import android.os.UserManager
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.ViewModel
 import com.sarim.app.data.DeviceAdmin
@@ -12,13 +11,12 @@ class RestrictionsViewModel : ViewModel() {
 
     // Current state in the UI (draft)
     val draftRestrictions = mutableStateMapOf<String, Boolean>()
-    
+
     // Actual state applied in the system
     val appliedRestrictions = mutableStateMapOf<String, Boolean>()
 
     val recommendedKeys get() = SystemRestrictions.recommendedKeys
-    val otherKeys get() = SystemRestrictions.otherKeys
-    private val allKeys get() = SystemRestrictions.allKeys
+    private val managedKeys get() = SystemRestrictions.allKeys
 
     fun resourceNameFor(key: String): String? = SystemRestrictions.resourceNameFor(key)
 
@@ -28,11 +26,13 @@ class RestrictionsViewModel : ViewModel() {
 
     fun loadRestrictions() {
         if (!dpm.isDeviceOwnerApp(adminName.packageName)) return
-        val currentRestrictions = dpm.getUserRestrictions(adminName)
-        allKeys.forEach { key ->
-            val isEnabled = currentRestrictions.getBoolean(key as String?)
-            draftRestrictions[key] = isEnabled
-            appliedRestrictions[key] = isEnabled
+        val current = dpm.getUserRestrictions(adminName)
+        managedKeys.forEach { key ->
+            // The mandatory ones are always reported as on, even before the platform has
+            // acknowledged them, because [MandatoryProtection] re-applies them on every launch.
+            val enabled = key in SystemRestrictions.mandatoryKeys || current.getBoolean(key)
+            draftRestrictions[key] = enabled
+            appliedRestrictions[key] = enabled
         }
     }
 
@@ -45,13 +45,12 @@ class RestrictionsViewModel : ViewModel() {
     }
 
     fun applyChanges() {
-        allKeys.forEach { key ->
+        managedKeys.forEach { key ->
             val shouldEnable = key in SystemRestrictions.mandatoryKeys || draftRestrictions[key] == true
-            val currentlyAppliedRestrictions = dpm.getUserRestrictions(adminName)
             if (shouldEnable) {
-                dpm.addUserRestriction(adminName, key as String?)
-            } else if (currentlyAppliedRestrictions.containsKey(key)) {
-                dpm.clearUserRestriction(adminName, key as String?)
+                dpm.addUserRestriction(adminName, key)
+            } else {
+                dpm.clearUserRestriction(adminName, key)
             }
         }
         loadRestrictions()
@@ -59,5 +58,5 @@ class RestrictionsViewModel : ViewModel() {
 
     fun isAllDraftsEnabled(keys: List<String>): Boolean = keys.all { draftRestrictions[it] == true }
 
-    fun hasPendingChanges(): Boolean = allKeys.any { draftRestrictions[it] != appliedRestrictions[it] }
+    fun hasPendingChanges(): Boolean = managedKeys.any { draftRestrictions[it] != appliedRestrictions[it] }
 }

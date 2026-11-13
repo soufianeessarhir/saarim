@@ -108,7 +108,6 @@ The screens also refuse to save a built-in list with the built-in entries missin
 - the `UserManager` restrictions in §6.9;
 - `setGlobalPrivateDnsModeSpecifiedHost` for the filtering resolver;
 - `setPackagesSuspended` for Tor, torrents, unsupported browsers and 18+ apps;
-- `setApplicationHidden` and `setUninstallBlocked` on the Apps screen;
 - `setApplicationRestrictions` for `URLBlocklist` and `ForceGoogleSafeSearch` in browsers.
 
 **The Accessibility Service unlocks:**
@@ -166,7 +165,7 @@ shell already has the needed privileges, which is why the Makefile path does not
    the optional factory-reset block; the user confirms it once.
 5. **Commitment selection** — if no commitment has ever been started.
 6. **Lock screen** — biometric/device-credential check, then the access challenge(s).
-7. **Main tabs** — Protection, Apps, Config.
+7. **Main tabs** — Home, Protection, Config.
 
 The Device Owner step comes **before** the commitment because the commitment's system restrictions
 close ADB, and ADB is how Shizuku grants Device Owner. Granting it afterwards would be impossible
@@ -215,12 +214,16 @@ or removed — not by the settings, not by the recovery code alone, not by clear
 |---|---|
 | Presets | **Regular** (no lock), 90, 180, 365, 730 days, or **permanent** |
 | Accepted range | 90 – 3650 days (values below the floor are clamped to 90) |
-| Chosen | Once, after the protection setup is confirmed, before the app opens |
+| Chosen | First after the protection setup is confirmed, before the app opens; later changes only extend it |
 | Stored | `security_prefs`: `commitment_start_rtc`, `commitment_start_elapsed`, `commitment_duration_ms` (`-1` = permanent, `-2` = regular, `-3` = ended early), `commitment_last_seen_rtc`, and the release-order keys |
 | Release | The period running out; a code-confirmed release order after a 7-day wait (timed commitments only); or the 48-hour forced removal (not offered for a permanent, regular or already-ended setup) |
 
-`CommitmentLock.start()` is the only entry point. `hasStarted()` guards it, so a running commitment
-is never restarted, shortened or replaced.
+`CommitmentLock.start()` creates the commitment and `hasStarted()` guards it, so setup cannot
+restart, shorten or replace a running one. `CommitmentLock.changeDuration()` is the only later
+entry point: it extends a running period (from today), turns Regular or an ended commitment into a
+real one, or makes a timed commitment permanent; a shorter period and any change to a permanent
+commitment are refused, and a pending release order is cancelled because it targeted the old
+deadline.
 
 **Ending it early.** A timed commitment can be ended through a release order: Config → *End
 commitment early* asks for the recovery code, records the order, and starts a fixed 7-day wait
@@ -309,11 +312,11 @@ switches, so there is nothing to reassert.
 
 ### 5.4 Forbidden words
 
-**Built-in list:** roughly 80 unique entries across English, Arabic and Portuguese
+**Built-in list:** roughly 165 unique entries across English, Arabic and Portuguese
 (`ProtectionDefaults.FORBIDDEN_WORDS`). Matching is case-insensitive and boundary-aware:
-`(?<![\p{L}\p{N}_])word(?![\p{L}\p{N}_])`. The list is unioned back on every launch and on every
-save (`BlockedWordsViewModel.updateWords`), so it cannot be removed through the UI; the user can
-add more.
+`(?<![\p{L}\p{N}_])word(?![\p{L}\p{N}_])`. The list is unioned back on every launch. It is extended for all three
+languages, hidden from the UI, and cannot be edited or removed; only the per-app passive lists are
+user-editable.
 
 **Active blocking** (`blocked_words_prefs` → `target_packages`):
 
@@ -336,8 +339,8 @@ deliberately avoids ambiguous words such as "sex" alone, which would block healt
 - Every installed app resolving `CATEGORY_APP_BROWSER`, an `http://` view or an `https://` view is
   treated as a browser.
 - Browsers that declare `URLBlocklist` and `ForceGoogleSafeSearch` receive a managed configuration
-  with the built-in list (about 80 bare hostnames, matched with subdomains) plus every user list,
-  and `ForceGoogleSafeSearch = true`.
+  with the built-in list (500 bare hostnames, matched with subdomains) plus every user list,
+  and `ForceGoogleSafeSearch = true`. The built-in list is not shown in the app.
 - The built-in list has the reserved id `sarim-mandatory-adult-sites`. It is rewritten on every
   launch, cannot be edited or deleted in the UI, and `applyRestrictions()` unions the domains in
   regardless of what the preference file says.
@@ -411,27 +414,26 @@ Eight restrictions are mandatory and cannot be unticked:
 | `DISALLOW_DEBUGGING_FEATURES` | Attaching ADB or a debugger |
 | `DISALLOW_CONFIG_DATE_TIME` | Moving the clock a commitment is measured against |
 
-Everything else Android exposes as a `UserManager` policy is listed on the **System restrictions**
-screen, searchable, and can be added on top: factory reset, accounts, Bluetooth, and so on. A
-per-app restriction editor also lets the user inspect and apply restrictions an individual app
-declares through `RestrictionsManager`.
+The only optional restriction is `DISALLOW_FACTORY_RESET`. Everything else Android exposes as a
+`UserManager` policy — volume, Bluetooth, calls, SMS, accounts and so on — is deliberately not
+offered, because it does not protect the content block. There is no per-app restriction editor.
 
-The eight mandatory entries are no longer listed as disabled checkboxes. The screen opens with a
-short status line naming what is always restricted, then lists only the optional policies.
+The eight mandatory entries are not listed as disabled checkboxes. The screen opens with a short
+status line naming what is always restricted, then lists the optional factory-reset block.
 
-### 5.10 App management
+### 5.10 Automatic app suspension
 
-The **Apps** tab lists installed apps with search and filter chips for *system apps*, *blocked* and
-*explicit content*. Each row has three controls:
+There is no app-management screen. The old Apps tab was a holdover from the time-management
+features and has been removed together with its hide/uninstall-lock controls. What remains runs
+without user curation:
 
-| Control | API | Effect |
-|---|---|---|
-| Block | `AppRepository.setAppHidden` → `setApplicationHidden` | Hides the app from the launcher; re-applied after reinstall |
-| Suspend | `AppRepository.setAppSuspended` → `setPackagesSuspended` | Suspends it outright; the icon remains but tapping does nothing |
-| Uninstall lock | `AppRepository.setUninstallBlocked` → `setUninstallBlocked` | The app cannot be removed |
+- apps the Play Store rates 18+ **and** flags with explicit content are suspended when installed,
+  or the first time they are opened when no rating is cached;
+- Tor/Orbot and torrent clients are suspended by the accessibility service (§5.7);
+- a browser that cannot take managed restrictions is suspended, and its switch stays on the
+  Browser restrictions screen.
 
-Apps are flagged `18+` when the store-rating check found explicit content. Blocking and suspending
-are allowed during a commitment; unblocking and un-suspending are not.
+Suspensions use `setPackagesSuspended`; there is no per-app block or uninstall lock.
 
 ### 5.11 Access challenges
 
@@ -550,17 +552,17 @@ First run
 └── LockScreen              commitment banner, biometrics, challenge(s)
 
 Main tabs
-├── Protection              commitment card, incomplete-setup warning, layer list
-├── Apps                    search, filters, block / suspend / uninstall lock
+├── Home                    protection status, commitment card, prerequisites, layer summary
+├── Protection              incomplete-setup warning, layer list
 └── Config
-    ├── Commitment (read-only, plus the 7-day release order)
+    ├── Commitment (extend/permanent, plus the 7-day release order)
     ├── Device owner state / SetupDeviceOwnerPrivileges
     ├── Advanced blocking (accessibility switch)
     ├── VisualBlockingScreen
     ├── BlockedWordsScreen
     ├── BrowserRestrictionsScreen
     ├── Private DNS dialog
-    ├── RestrictionsTab (optional system restrictions + per-app restrictions)
+    ├── RestrictionsTab (optional factory-reset block)
     ├── How it works
     ├── Language
     ├── Keyboard
@@ -594,7 +596,7 @@ app/src/main/java/com/sarim/app/
 │   ├── DeviceOwnerRepository.kt    Shizuku commands, DNS, accounts, accessibility settings
 │   ├── SystemRestrictions.kt       UserManager policy catalogue
 │   ├── BrowserRestrictionsManager.kt  browser/Tor/torrent detection, managed config
-│   ├── AppRepository.kt            installed apps, hide/suspend/uninstall lock
+│   ├── AppRepository.kt            installed apps, suspension
 │   ├── PlayStoreRatingFetcher.kt   Jsoup scrape of the store listing
 │   ├── ProtectionDefaults.kt       built-in words, adult sites, DNS hosts
 │   ├── VisualBlockingSettings.kt   keys and defaults
@@ -605,9 +607,9 @@ app/src/main/java/com/sarim/app/
 ├── notifications/                  APK update result receiver
 ├── screens/
 │   ├── setup/                      onboarding-adjacent recovery, owner, protection, commitment
-│   ├── challenges/                 words, math, Tetris, reading, sounds
+│   ├── challenges/                 math, Tetris, reading, sounds
 │   ├── common/                     RecoveryGate, wizards, onboarding, APK dialogs
-│   └── tabs/                       Protection, Apps, Config, Visual, Words, Browser, Restrictions
+│   └── tabs/                       Home, Protection, Config, Visual, Words, Browser, Restrictions
 ├── security/
 │   ├── SecurityManager.kt          code, session, challenges, forced removal
 │   ├── CommitmentLock.kt           commitment start, release order and time arithmetic
@@ -645,7 +647,6 @@ All persistence is `SharedPreferences`; there is no database.
 | `visual_blocking_prefs` | `target_packages`, `threshold`, suspension settings |
 | `blocked_words_prefs` | `blocked_words` (built-in ∪ user), `target_packages`, `passive_words_<package>` |
 | `browser_prefs` | `blocked_lists_json` (built-in list + user lists) |
-| `hidden_apps_prefs` | packages to re-hide when reinstalled |
 | `app_ratings` | package → has explicit content |
 | `visual_blocking_suspensions` | suspension deadlines per package |
 | `onboarding_prefs` | whether the one-time carousel has been shown, and whether the protection setup has been confirmed |
@@ -881,7 +882,7 @@ services, receivers, strings, permissions and notification layouts were removed 
 
 - `MandatoryProtection.enforce()` must stay idempotent and must remain the single source of truth
   for the built-in layers.
-- `CommitmentLock` must never gain a `stop()` or a settable duration.
+- A commitment may only be extended or made permanent (`CommitmentLock.changeDuration`); it must never be shortened or replaced, and a permanent one must stay permanent.
 - The recovery code must remain the only ordinary way to weaken an adjustable layer.
 - The built-in browser list, forbidden words and the default monitored app must be unioned back,
   never replaced; the visual categories and escalation are hard-wired on.

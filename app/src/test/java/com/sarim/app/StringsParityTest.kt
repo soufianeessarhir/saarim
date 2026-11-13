@@ -56,6 +56,6 @@ class StringsParityTest {
         // colour filters, impulse lock and the activity blocker were removed with their strings.
         // Raise this when adding entries; lower it only when a feature is deliberately removed,
         // never to make a deletion pass green.
-        (stringKeys("values").size + pluralKeys("values").size) shouldBe 345
+        (stringKeys("values").size + pluralKeys("values").size) shouldBe 344
     }
 }

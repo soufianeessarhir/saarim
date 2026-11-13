@@ -3,6 +3,15 @@ package com.sarim.app.data
 import android.os.UserManager
 import com.sarim.app.security.MandatoryProtection
 
+/**
+ * The system restrictions Sarim manages. Only the ones that protect the content block are here:
+ * the mandatory bypass routes (VPN, private DNS, sideloading, uninstall, app control, safe boot,
+ * USB debugging, clock changes), plus the factory-reset block offered as extra hardening.
+ *
+ * Everything else Android exposes through `UserManager` — volume, Bluetooth, calls, SMS, camera
+ * toggles and the rest — has nothing to do with blocking pornography, so it is deliberately not
+ * offered.
+ */
 object SystemRestrictions {
     /**
      * Applied by [MandatoryProtection] and never listed as editable: each one either routes
@@ -13,7 +22,12 @@ object SystemRestrictions {
 
     val recommendedKeys = listOf(UserManager.DISALLOW_FACTORY_RESET)
 
-    val restrictionFieldNames: Map<String, String> by lazy {
+    val allKeys: List<String> by lazy {
+        (mandatoryKeys + recommendedKeys).distinct()
+    }
+
+    /** Platform field name -> `UserManager` constant, used to resolve the translated label. */
+    private val restrictionFieldNames: Map<String, String> by lazy {
         UserManager::class.java.fields
             .filter { field ->
                 java.lang.reflect.Modifier.isStatic(field.modifiers) &&
@@ -21,16 +35,6 @@ object SystemRestrictions {
                         (field.name.startsWith("DISALLOW_") || field.name.startsWith("ALLOW_"))
             }
             .associate { (it.get(null) as String) to it.name.lowercase() }
-    }
-
-    val otherKeys: List<String> by lazy {
-        restrictionFieldNames.keys
-            .filter { it !in mandatoryKeys && it !in recommendedKeys }
-            .sorted()
-    }
-
-    val allKeys: List<String> by lazy {
-        (recommendedKeys + otherKeys).distinct()
     }
 
     fun resourceNameFor(key: String): String? = restrictionFieldNames[key]

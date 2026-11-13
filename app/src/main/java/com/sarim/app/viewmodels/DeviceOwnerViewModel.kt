@@ -1,12 +1,9 @@
 package com.sarim.app.viewmodels
 
 import android.content.Context
-import android.content.RestrictionEntry
 import android.content.pm.PackageManager
-import android.os.Bundle
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import com.sarim.app.data.AppRepository
 import com.sarim.app.data.DeviceOwnerRepository
 import rikka.shizuku.Shizuku
 import rikka.shizuku.Shizuku.OnRequestPermissionResultListener
@@ -74,13 +71,4 @@ class DeviceOwnerViewModel : ViewModel() {
     fun getExtraUsersInfo(): List<String> = DeviceOwnerRepository.getExtraUsersInfo()
 
     fun changeAccessibilityPermission(grant: Boolean) = DeviceOwnerRepository.changeAccessibilityPermission(grant)
-
-    fun getApplicationRestrictions(packageName: String): Bundle =
-        AppRepository.getApplicationRestrictions(packageName)
-
-    fun setApplicationRestrictions(packageName: String, restrictions: Bundle) =
-        AppRepository.setApplicationRestrictions(packageName, restrictions)
-
-    fun getAvailableRestrictions(packageName: String): List<RestrictionEntry> =
-        AppRepository.getAvailableRestrictions(packageName)
 }

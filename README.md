@@ -30,7 +30,6 @@ built so that your future self can't simply turn it off.
   </tr>
   <tr>
     <td align="center"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4_restrictions.png" width="230"><br><sub><b>System restrictions</b> via Device Owner</sub></td>
-    <td align="center"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5_apps.png" width="230"><br><sub><b>Block or suspend</b> any app</sub></td>
     <td align="center"><img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6_config.png" width="230"><br><sub><b>All protections</b> in one place</sub></td>
   </tr>
   <tr>
@@ -89,7 +88,7 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 
 | | |
 |---|---|
-| 🔒 **Commitment** | Chosen after the protection is confirmed: Regular (no lock), at least 90 days, or permanent. A timed commitment can only be ended early by a code-confirmed order that waits 7 days; a permanent one cannot be ended at all. |
+| 🔒 **Commitment** | Chosen after the protection is confirmed: Regular (no lock), at least 90 days, or permanent. It can be extended from Config, never shortened. A timed commitment can only be ended early by a code-confirmed order that waits 7 days; a permanent one cannot be ended at all. |
 | 🧠 **On-device visual blocking** | A local TensorFlow Lite model detects explicit images and video on screen and closes the app. Nothing is uploaded. |
 | ⌨️ **Word blocking** | Closes the app when a forbidden adult word is typed or appears anywhere on screen. A built-in list can't be removed. |
 | 🌐 **Adult-site blocking** | A built-in domain list plus forced SafeSearch pushed into every browser, and a filtering private DNS that resolves nothing else. |
@@ -102,8 +101,7 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 <summary><b>System restrictions (Device Owner)</b></summary>
 
 - The bypass-preventing restrictions are always on: block VPN configuration, block private DNS configuration, block unknown-source installs, block uninstalling apps, block app control (force-stop/uninstall), block safe boot, block USB debugging, and block clock changes — the last one so a commitment deadline can't be moved.
-- Every other Android system restriction (`UserManager` policy) can additionally be toggled on from a searchable list (blocking factory reset, adding accounts, and more, depending on Android version). The mandatory ones cannot be turned off.
-- Per-app restriction editor: any restriction an individual app declares (via `RestrictionsManager`) can be inspected and applied to that app specifically.
+- The only optional restriction is the factory-reset block. Every other `UserManager` policy (volume, Bluetooth, calls, SMS, accounts, and so on) is deliberately not offered, because it has nothing to do with blocking adult content.
 
 </details>
 
@@ -111,20 +109,18 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 <summary><b>Browser and network</b></summary>
 
 - Pins a family/adult-filtering private DNS (Cloudflare Family, AdGuard Family or CleanBrowsing Adult). There is no "automatic", no "off" and no custom host: any other resolver is replaced on the next launch.
-- Applies a built-in adult-site `URLBlocklist` plus `ForceGoogleSafeSearch` to every browser that supports managed restrictions. The built-in list is re-applied on every launch and cannot be deleted.
+- Applies a built-in adult-site `URLBlocklist` (500 hosts, matched with their subdomains) plus `ForceGoogleSafeSearch` to every browser that supports managed restrictions. The list is re-applied on every launch, cannot be deleted, and is not shown in the app.
 - Any newly installed browser that doesn't support these policies is suspended outright instead of being left unrestricted.
 - Blocks Tor and Orbot: every installed Tor component is suspended, and so is anything installed later. Detection isn't a fixed list of package ids — the package name *and* the visible app name are checked, so a Tor client published under a different id (a rebuild, a rebrand, a future Tor Project app) is caught too. Turning the block on sweeps the apps already on the phone too, so a client installed beforehand can't slip past it.
 
 </details>
 
 <details>
-<summary><b>App management</b></summary>
+<summary><b>Automatic app blocking</b></summary>
 
-- Hide/block or instantly suspend individual apps.
-- Block uninstallation on a per-app basis.
-- Filter by blocked or 18+-rated apps, and search the list.
-- Automatically suspends apps rated 18+ or flagged with explicit content, checked against the Play Store's content rating page when an app is installed or first opened.
-- Automatically blocks torrent apps (detected by their ability to handle magnet links or `.torrent` files), including the ones already installed when the block is turned on.
+- Suspends apps the Play Store rates 18+ and flags with explicit content, checked when an app is installed or first opened.
+- Suspends torrent apps (detected by their ability to handle magnet links or `.torrent` files), including the ones already installed.
+- There is no app-management screen: the list of every installed app was a holdover from the previous time-management features, and blocking now works without asking the user to curate it.
 
 </details>
 
@@ -133,6 +129,7 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 
 - **Active blocking:** detects a forbidden word typed into a selected app and closes it with a block screen once typing stops.
 - **Passive blocking:** scans on-screen text (not just typed input) per app, useful for search results and feeds, and closes the app when a configured word appears anywhere on screen.
+- The built-in list is extended for all three languages and hidden: it cannot be edited or removed. Only the per-app passive lists are yours to change.
 
 </details>
 
@@ -142,8 +139,9 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 - A local TensorFlow Lite model (MobileNetV2) classifies on-screen images and video into drawings, hentai, neutral, porn, and sexy. No data leaves the device.
 - The Accessibility Service scans the screen of selected apps for likely media regions, captures them, and runs the classifier; the app is closed when the combined score for the four adult categories crosses a configurable threshold.
 - Escalation is always on: after a set number of blocks within a time window, the app is suspended for a configurable duration instead of just being closed.
-- Visual blocking itself is not optional: it is on from the first launch, with the porn, hentai, sexy and drawings categories always classified, and the built-in monitored app is never removable. You can add more apps, tune the sensitivity (30–70 %) and the suspension thresholds.
+- Visual blocking itself is not optional: it is on from the first launch, with the porn, hentai, sexy and drawings categories always classified, and the built-in monitored app is never removable. You can add more apps, and — after entering the recovery code — tune the sensitivity (30–70 %) and the suspension thresholds, then save.
 - **Your commitment** pins the whole stack — visual blocking, forbidden words, browser lists, SafeSearch, DNS, Tor/torrents and the system restrictions — for the period you chose after confirming the protection (90 days minimum, or permanent), or you can choose Regular and keep the settings changeable with the recovery code. Any attempt to clear the stored settings is undone on the next launch. A timed or permanent commitment survives reboots and resists system clock changes in both directions.
+- The commitment can be changed from Config, but only in the stricter direction: a running period can be extended (the new period starts today), a Regular setup or an ended period can become a real commitment, and any timed commitment can be made permanent. Shortening it is refused. Changing it cancels any pending release order.
 - A timed commitment can be ended early through the 7-day release order in Config: the order is confirmed with the recovery code, the timer can be cancelled at any point (which resets it), and once the seven days pass the code ends the commitment. It can also still be ended through the 48-hour forced removal when the code is lost. A permanent commitment has neither route — that is the difference between the two choices.
 
 </details>
@@ -151,7 +149,7 @@ Both are granted once, during setup, through [Shizuku](https://shizuku.rikka.app
 <details>
 <summary><b>Getting in: access challenges</b></summary>
 
-- Opening the settings requires biometric or device authentication, then the 32-word challenge by default: type a string of random letters correctly, once, to prove you meant to open it. Math, Tetris and timed reflective reading are also available.
+- Opening the settings requires biometric or device authentication. The old 32-word typing challenge is removed. Math, Tetris and timed reflective reading remain in the code, but no settings screen selects them, so the default now has no extra challenge after the biometric prompt.
 - **Tetris:** playing for a configurable number of minutes (time only counts while actually playing). Gravity speeds up as levels rise, with a lock delay, line clear animations and sound effects that can be muted.
 - **Reflective reading:** reading a configurable number of texts (5 by default) about lust and self-control, picked at random from the Bible, the Quran, quotes from philosophers and writers, or your own phrases, at a slow reading pace with words highlighted one by one.
 - Every challenge screen has a "give up" button that goes back to the lock screen.
@@ -229,6 +227,7 @@ Sarim is a fork of [Déchaîner](https://github.com/warleysr/dechainer) (Apache 
 - Added a first-run "How it works" carousel (5 slides, en/ar/pt) that appears once after the recovery code is set and can be re-opened any time from the Config tab.
 - Added a `-PplayStoreBuild=true` build flag (`BuildConfig.PLAY_STORE_BUILD`) that removes the self-update-by-APK path for the Play-distributed APK, per Google Play policy.
 - Narrowed the app to one job — blocking pornography and adult content — and removed focus mode, time limits, usage warnings, app groups, colour filters, impulse lock and the activity blocker.
+- Removed the Apps tab, a holdover from the time-management features, together with its hidden/uninstall-lock controls; app suspension now happens automatically.
 - Added the commitment (90 days minimum or permanent, chosen after a protection review), the 7-day code-confirmed release order for timed commitments, the built-in adult-site list and forbidden words, the family-DNS default, the hardening restrictions (uninstall, app control, safe boot, USB debugging, clock changes), and identity-based Tor/Orbot blocking with an install-time sweep.
 - Moved the "How it works" tour to the very start of first run and added a protection review screen before the commitment.
 

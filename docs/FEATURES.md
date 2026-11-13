@@ -18,15 +18,15 @@ an *existing* protection may be tuned or weakened. Concretely:
 - **No secret code needed** for settings that do not touch a protection layer: language, keyboard
   layout, the onboarding carousel, and the forced-removal timer. They never open the code dialog.
 - **A 10-minute session unlocks the adjustable parts of the protection screens** — extra monitored
-  apps and the visual sensitivity (the built-in app and categories stay fixed), extra forbidden
-  words and per-app passive lists, extra URL lists and per-browser suspension, the DNS choice
-  among the three filtering resolvers, extra `UserManager` restrictions, app blocking/suspending/
-  uninstall lock, enabling advanced blocking, and changing the recovery code itself. The session is
+  apps and the visual sensitivity (the built-in app and categories stay fixed), the per-app passive
+  word lists, extra URL lists and per-browser suspension, the DNS choice among the three filtering
+  resolvers, the factory-reset block, enabling advanced blocking, and changing the recovery code
+  itself. The session is
   opened by the dialog in `RecoveryGate` and is renewable; while it is active the dialog does not
   reappear.
 - **The commitment overrides the session.** While a commitment is running, `RecoveryGate` refuses
   every gated change, even with the code, except actions that only add protection
-  (`strengtheningAction = true`): enabling advanced blocking, blocking an app, suspending an app.
+  (`strengtheningAction = true`): enabling advanced blocking and suspending a browser.
   The one deliberate exception is the release order: it sits outside `RecoveryGate`, is confirmed
   with the code, and cannot end anything until its seven-day wait has passed.
 - **Tor/Orbot and torrents are on by default and cannot be cancelled.** They are shown as status
@@ -81,7 +81,6 @@ Device owner is what unlocks, at the OS level:
 - the `UserManager` restrictions in §2.7,
 - a private DNS host (§2.4),
 - `setPackagesSuspended` — suspending Tor, torrents, unsupported browsers and 18+ apps (§2.5, §2.6),
-- `setApplicationHidden` / `setUninstallBlocked` on the Apps screen,
 - `setApplicationRestrictions` — the `URLBlocklist` and `ForceGoogleSafeSearch` policies (§2.3).
 
 Without it the first-run gate stops at the owner screen: the commitment and the tabs are not
@@ -96,11 +95,15 @@ reachable, and the Protection tab would show an incomplete-protection card if it
 | Presets | **Regular** (no lock), 90, 180, 365, 730 days, or **permanent** |
 | Accepted range | 90 – 3650 days for a timed commitment (values below the floor are raised to 90); `0` selects Regular |
 | Stored as | `security_prefs` → `commitment_start_rtc`, `commitment_start_elapsed`, `commitment_duration_ms` (`-1` = permanent, `-2` = regular, `-3` = ended early), `commitment_last_seen_rtc`, plus the release-order keys |
-| Chosen at | once, after the protection review, before the app opens for the first time |
+| Chosen at | first after the protection review, before the app opens; later changes only extend it |
 | Release | the period running out; a code-confirmed release order after a 7-day wait (timed commitments only); or the 48-hour forced removal — **not offered for a permanent or regular setup** |
 
-`start()` is the only entry point and `hasStarted()` guards it: a running commitment is never
-restarted, shortened or replaced.
+`start()` creates the commitment and `hasStarted()` guards it: it is never restarted, shortened or
+replaced at setup. `changeDuration()` is the only later entry point, and it is deliberately
+one-way: it extends a running period (counted from today), turns a Regular or ended commitment
+into a real one, or makes a timed commitment permanent. It refuses a shorter period, refuses to
+change a permanent commitment, and drops any pending release order because that order was placed
+against the old deadline. Config exposes it on the commitment row.
 
 **The release order.** A timed commitment can be ended early in three stages:
 
@@ -119,7 +122,7 @@ A permanent commitment cannot place an order; a regular setup has nothing to end
 
 - every action that goes through `RecoveryGate` is refused, *including* one a recovery session
   would normally authorise — the recovery code does not override the commitment. This covers
-  blocked-word edits, browser lists, DNS, monitoring changes, app unblocking/unsuspending, the
+  browser lists, DNS, visual-blocking changes, browser suspension, the
   accessibility switch being turned *off*, and changes to the recovery code itself;
 - the only bypass is `strengtheningAction = true`, used by the few controls that can only add
   protection: enabling advanced blocking, blocking an app, suspending an app;
@@ -207,8 +210,8 @@ Windows that are closed by the flanking screens: the blocked-content screen
 
 `security/MandatoryProtection` seeds `data/ProtectionDefaults.FORBIDDEN_WORDS` — English, Arabic and
 Portuguese adult vocabulary, matched case-insensitively on word boundaries (`(?<![\p{L}\p{N}_])`).
-The list is unioned back in on every launch and re-union'd on every save
-(`BlockedWordsViewModel.updateWords`), so nothing in the UI can remove it; the user can add more.
+The list is unioned back in on every launch. It is extended for all three languages, hidden from
+the UI, and cannot be edited or removed; only the per-app passive lists are user-editable.
 
 Two modes, per app:
 
@@ -300,10 +303,10 @@ store page that cannot be fetched) means no action — the visual, word and DNS 
 | `DISALLOW_DEBUGGING_FEATURES` | attaching ADB or a debugger |
 | `DISALLOW_CONFIG_DATE_TIME` | moving the clock a commitment is measured against |
 
-Everything else Android exposes as a `UserManager` policy is listed on the **System restrictions**
-screen, searchable, and can be added on top (factory reset, accounts, Bluetooth, and so on). The
-eight above are always on and are no longer listed as disabled checkboxes; the screen opens with a
-status line naming them and then lists only the optional policies.
+The only optional restriction is `DISALLOW_FACTORY_RESET`, offered on the **System restrictions**
+screen. Everything else Android exposes as a `UserManager` policy — volume, Bluetooth, calls, SMS,
+accounts and so on — is deliberately not offered, because it does not protect the content block.
+The eight above are always on and are not listed as editable checkboxes.
 
 ### 2.8 Advanced blocking (accessibility)
 
@@ -327,10 +330,10 @@ allowed even during a commitment, since it only adds protection.
    else is behind it yet.
 2. **Access app** → biometric prompt, falling back to the device credential, falling back to no
    check at all if the device has neither configured.
-3. Then the access challenges (`SecurityManager.getAccessChallenges`), run in sequence. The default
-   is **Words**: a random string that has to be typed back exactly, once. The current build uses
-   that default; the Math, Tetris and reflective-reading screens remain in the code but there is no
-   settings entry that selects them.
+3. Then any access challenges (`SecurityManager.getAccessChallenges`), run in sequence. The default
+   is now none: the biometric or device-credential prompt is the gate. The old 32-word typing
+   challenge is removed; the Math, Tetris and reflective-reading screens remain in the code but no
+   settings entry selects them.
 4. Every challenge screen has *give up*, which returns to the lock screen without opening the app.
 
 APK updates of already-installed apps are offered here without authentication (only when unknown
@@ -339,38 +342,42 @@ sources are restricted, so the APK path exists at all). The Play Store build dis
 
 ---
 
-## 4. Apps screen
+## 4. Automatic app suspension
 
-Search, plus filter chips for *system apps*, *blocked* and *explicit content*. Each row has three
-toggles:
+There is no app-management screen. The old Apps tab was a holdover from the time-management
+features and has been removed together with its hide/uninstall-lock controls. What remains runs
+without user curation:
 
-| Toggle | Calls | Effect |
-|---|---|---|
-| Block | `AppRepository.setAppHidden` | hides the app from the launcher (`setApplicationHidden`); re-applied on reinstall |
-| Suspend | `AppRepository.setAppSuspended` | suspends it outright; the icon stays but tapping it does nothing |
-| Uninstall lock | `AppRepository.setUninstallBlocked` | the app cannot be removed |
+- apps the Play Store rates 18+ **and** flags with explicit content are suspended when installed,
+  or the first time they are opened when no rating is cached;
+- Tor/Orbot and torrent clients are suspended by the accessibility service (§2.5);
+- a browser that cannot take managed restrictions is suspended, and its switch stays on the
+  Browser restrictions screen.
 
-Apps are flagged `18+` when the store rating check found explicit content. Blocking and suspending
-are allowed during a commitment; unblocking and un-suspending are not.
+Suspensions use `setPackagesSuspended`; there is no per-app block or uninstall lock.
 
 ---
 
-## 5. Settings screen
+## 5. Tabs and settings
+
+The app has three root tabs: **Home** (protection status, commitment, prerequisites and the layer
+summary), **Protection** (the incomplete-setup warning and the layer list) and **Config** (the
+settings below).
 
 | Row | What it does |
 |---|---|
-| Commitment | days left, *Permanent*, *Regular (no commitment)* or *Ended early*; read-only |
+| Commitment | days left, *Permanent*, *Regular (no commitment)* or *Ended early*; tap to extend it or make it permanent — never to shorten it |
 | End commitment early | the 7-day release order for a timed commitment: code to order, cancel at any time, code again when the wait ends |
 | Device owner | state badge; opens the Shizuku setup screen |
 | Advanced blocking | accessibility switch (gated; enabling is allowed during a commitment) |
-| Visual blocking | monitored apps, sensitivity, suspension thresholds; all four categories are fixed |
-| Blocked words | active list, per-app passive lists |
-| Browser restrictions | installed browsers, per-browser suspension, user URL lists, the built-in list |
+| Visual blocking | monitored apps; sensitivity and suspension thresholds, unlocked with the recovery code and saved explicitly; all four categories are fixed |
+| Blocked words | which apps are monitored and the per-app passive lists; the built-in list is hidden |
+| Browser restrictions | installed browsers, per-browser suspension, user URL lists; the built-in list is hidden and always applied |
 | Private DNS | the three filtering resolvers |
-| System restrictions | a status line for the mandatory eight, plus every optional `UserManager` policy |
+| System restrictions | a status line for the mandatory eight, plus the optional factory-reset block |
 | How it works | the 5-slide onboarding carousel again |
 | Language | English, Portuguese, Arabic (Arabic is the default) |
-| Keyboard | normal or shuffled keypad for the code and the word challenge |
+| Keyboard | normal or shuffled keypad for the recovery code |
 | Change recovery code | regenerate, gated |
 | Forced removal | 48-hour timer; hidden for a permanent or regular setup |
 
@@ -410,11 +417,10 @@ session is active), runs through an active session, or never asks at all.
 
 - visual blocking: adding/removing monitored apps and changing the sensitivity; the built-in app
   and the four adult categories cannot be changed at all;
-- forbidden words: the active list and the per-app passive lists, plus which apps are monitored;
+- forbidden words: which apps are monitored and the per-app passive lists;
 - browser restrictions: extra URL lists, attaching them to browsers, suspending a browser;
 - private DNS: switching among the three filtering resolvers;
 - system restrictions: adding or removing any optional `UserManager` policy;
-- apps screen: blocking/hiding, suspending and the uninstall lock;
 - advanced blocking: turning accessibility on (turning it off is refused by the commitment);
 - the recovery code itself (changing it needs the current one).
 
@@ -424,8 +430,8 @@ else is frozen. The code starts the 7-day wait, the same code (or a still-active
 commitment once the wait is over, and cancelling the order never asks for a code.
 
 **Refused even with an active session:** every one of the gated actions above while a commitment is
-running — except enabling advanced blocking, blocking an app and suspending an app, which only make
-the phone stricter, and the release order described above. The dialog explains that the commitment
+running — except enabling advanced blocking and suspending a browser, which only make the phone
+stricter, and the release order described above. The dialog explains that the commitment
 is locked.
 
 The built-in layers (visual blocking itself, its categories, the forbidden-word seed list, the
@@ -448,6 +454,7 @@ Removed, along with their screens, models, services, receivers and strings:
 | Colour filters (grayscale, night light, extra dim, inversion) | comfort/sleep feature |
 | Impulse lock and the panic button | replaced by the commitment; its 15–360-minute timer was a time-management tool |
 | Activity blocker (blocking individual screens by class name) | short-video/social-media blocking |
+| Apps screen with per-app hide, suspend and uninstall lock | dead code from the time-management features; automatic suspension covers the job |
 | Strictness lock | superseded by the commitment: timed, permanent, or Regular (no lock) |
 
 Also removed with them: `SCHEDULE_EXACT_ALARM`, `USE_EXACT_ALARM`, `FOREGROUND_SERVICE`,
@@ -496,7 +503,6 @@ Also removed with them: `SCHEDULE_EXACT_ALARM`, `USE_EXACT_ALARM`, `FOREGROUND_S
 | `visual_blocking_prefs` | monitored packages, threshold, suspension settings |
 | `blocked_words_prefs` | `blocked_words` (built-in ∪ user), `target_packages`, `passive_words_<package>` |
 | `browser_prefs` | `blocked_lists_json` (built-in list + user lists) |
-| `hidden_apps_prefs` | packages to re-hide when they are reinstalled |
 | `app_ratings` | package → has explicit content |
 | `visual_blocking_suspensions` | suspension deadlines per package |
 | `onboarding_prefs` | whether the one-time carousel has been shown and the protection setup confirmed |

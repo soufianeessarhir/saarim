@@ -17,6 +17,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * Settings screen state for visual blocking. The numbers are drafts until [saveSettings] is
+ * called, so a slider moved by accident can be abandoned; the monitored-app list is saved as it
+ * is changed, because that picker is already confirmed by its own dialog.
+ */
 class VisualBlockingViewModel : ViewModel() {
     private val context = SarimApplication.getInstance()
     private val prefs = context.getSharedPreferences(VisualBlockingSettings.PREFS_NAME, Context.MODE_PRIVATE)
@@ -75,27 +80,41 @@ class VisualBlockingViewModel : ViewModel() {
 
     fun updateThreshold(value: Float) {
         threshold = value
-        prefs.edit { putFloat(VisualBlockingSettings.KEY_THRESHOLD, value) }
     }
 
     /**
      * The three settings below accept 0 while the user is clearing the field to type a new
-     * number, so they're only persisted once they hold a usable value — the service falls back to
-     * the stored one until then.
+     * number; [saveSettings] falls back to the default rather than persisting an unusable value.
      */
     fun updateSuspendBlockCount(value: Int) {
         suspendBlockCount = value
-        if (value >= 1) prefs.edit { putInt(VisualBlockingSettings.KEY_SUSPEND_BLOCK_COUNT, value) }
     }
 
     fun updateSuspendWindowMinutes(value: Int) {
         suspendWindowMinutes = value
-        if (value >= 1) prefs.edit { putInt(VisualBlockingSettings.KEY_SUSPEND_WINDOW_MINUTES, value) }
     }
 
     fun updateSuspendDurationMinutes(value: Int) {
         suspendDurationMinutes = value
-        if (value >= 1) prefs.edit { putInt(VisualBlockingSettings.KEY_SUSPEND_DURATION_MINUTES, value) }
+    }
+
+    /** Persists every draft setting. Called from the screen's Save button. */
+    fun saveSettings() {
+        prefs.edit {
+            putFloat(VisualBlockingSettings.KEY_THRESHOLD, threshold)
+            putInt(
+                VisualBlockingSettings.KEY_SUSPEND_BLOCK_COUNT,
+                suspendBlockCount.takeIf { it >= 1 } ?: VisualBlockingSettings.DEFAULT_SUSPEND_BLOCK_COUNT
+            )
+            putInt(
+                VisualBlockingSettings.KEY_SUSPEND_WINDOW_MINUTES,
+                suspendWindowMinutes.takeIf { it >= 1 } ?: VisualBlockingSettings.DEFAULT_SUSPEND_WINDOW_MINUTES
+            )
+            putInt(
+                VisualBlockingSettings.KEY_SUSPEND_DURATION_MINUTES,
+                suspendDurationMinutes.takeIf { it >= 1 } ?: VisualBlockingSettings.DEFAULT_SUSPEND_DURATION_MINUTES
+            )
+        }
     }
 
     fun loadApps() {

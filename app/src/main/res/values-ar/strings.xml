@@ -34,6 +34,7 @@
     <string name="recovery_wizard_stored">خزّنت الورقة في مكان آمن</string>
     <string name="apps">التطبيقات</string>
     <string name="config">الإعدادات</string>
+    <string name="home">الرئيسية</string>
     <string name="not_device_owner">لا توجد صلاحيات مالك الجهاز</string>
     <string name="how_it_works">كيف يعمل</string>
     <string name="how_it_works_desc">جولة سريعة في صارم والميزات خلف الشاشة.</string>
@@ -79,13 +80,8 @@
     <string name="remove_users">إزالة المستخدمين</string>
 
     <string name="search_apps">البحث عن تطبيقات…</string>
-    <string name="blocked">محظور</string>
-    <string name="block">حجب</string>
-    <string name="unblock">إلغاء الحجب</string>
-    <string name="allow_uninstall">السماح بالازالة</string>
     <string name="apply_restrictions">تطبيق القيود</string>
     <string name="recommended_configs">القيود الموصى بها</string>
-    <string name="other_restrictions">قيود أخرى</string>
     <string name="disallow_config_vpn">منع VPN</string>
     <string name="disallow_config_private_dns">منع تغيير DNS خاص</string>
     <string name="disallow_factory_reset">منع إعادة التصنيع</string>
@@ -212,7 +208,6 @@
     <string name="apply_to_apps">تطبيق على التطبيقات</string>
     <string name="select_apps">اختيار التطبيقات</string>
     <string name="no_apps">لا تطبيقات مختارة</string>
-    <string name="blocked_words_list">قائمة الكلمات المحظورة</string>
     <string name="one_word_per_line">كلمة واحدة في كل سطر</string>
     <string name="show_system_apps">إظهار تطبيقات النظام</string>
 
@@ -222,7 +217,6 @@
     <string name="change_recovery_code">تغيير رمز الاسترداد</string>
     <string name="change_recovery_code_desc">توليد رمز استرداد جديد لاستبدال الحالي</string>
     <string name="shuffle_keyboard_backspace">⌫ حذف الأخير</string>
-    <string name="search_restrictions">البحث عن قيود…</string>
     <string name="list_title">عنوان القائمة</string>
     <string name="sites_lines">المواقع (واحد في كل سطر)</string>
     <string name="active_blocking">الحجب النشط</string>
@@ -245,13 +239,9 @@
     <string name="forced_removal_finish_dialog_text">انتهت الفترة 48 ساعة. هل تريد إزالة جميع القيود الآن؟</string>
     <string name="time_minutes">%1$d دقيقة</string>
     <string name="time_hours_minutes">%1$d ساعة %2$d دقيقة</string>
-    <string name="explicit_content">محتوى صريح</string>
-    <string name="suspend">تعليق</string>
-    <string name="unsuspend">إيقاف التعليق</string>
 
     <string name="access_app">فتح Sarim</string>
     <string name="math_challenge_title">حل المسائل</string>
-    <string name="word_challenge_title">اكتب الكلمات</string>
     <string name="challenge_error">غير صحيح، نبدأ من جديد…</string>
     <string name="challenge_step">التحدي %1$d من %2$d</string>
     <string name="challenge_give_up">لا أريد فتحه مجددًا</string>
@@ -377,6 +367,10 @@
     <string name="commitment_release_finish_title">إنهاء الالتزام الآن؟</string>
     <string name="commitment_release_finish_text">انتهت فترة الانتظار. أدخل رمز الاسترداد لإيقاف الالتزام. تبقى الحماية مفعّلة؛ ويُرفع فقط قفل الإعدادات.</string>
     <string name="commitment_release_finish_confirm">إنهاء الالتزام</string>
+    <string name="commitment_change_title">تغيير الالتزام</string>
+    <string name="commitment_change_dialog_text">بقي %1$d يومًا. اختر مدة أطول — تبدأ من اليوم. لا يمكن تمديد الالتزام إلا، ولا يمكن تقصيره.</string>
+    <string name="commitment_change_dialog_text_open">اختر مدة التزام. تبدأ من اليوم.</string>
+    <string name="commitment_change_confirm">تحديث الالتزام</string>
 
     <!-- Protection setup -->
     <string name="protection_setup_title">إعداد الحماية</string>
@@ -397,12 +391,20 @@
     <string name="protection_layers_title">الطبقات، جميعها مفعّلة</string>
     <string name="mandatory_restrictions_summary">VPN وDNS الخاص وتثبيت التطبيقات من خارج المتجر وإلغاء التثبيت والتحكم بالتطبيقات والوضع الآمن وتصحيح USB وتغيير التاريخ والوقت قيود دائمة.</string>
     <string name="protection_incomplete_title">الحماية غير مكتملة</string>
+    <string name="protection_active_title">الحماية مفعّلة</string>
+    <string name="home_active_body">جميع الطبقات مفعّلة. المحتوى الإباحي محجوب على جهازك.</string>
+    <string name="home_incomplete_body">بعض طبقات الحماية تحتاج إلى انتباه. افتح تبويب الحماية لإصلاحها.</string>
+    <string name="home_status_title">الحالة</string>
     <string name="protection_needs_owner">ملكية الجهاز غير ممنوحة: لا يمكن تطبيق قيود النظام وDNS الخاص.</string>
     <string name="protection_needs_accessibility">الحجب المتقدم متوقف: لا يتم فحص الصور والكلمات المكتوبة والتطبيقات المحجوبة.</string>
-    <string name="protection_needs_owner_short">يتطلب مالك الجهاز</string>
     <string name="protection">الحماية</string>
-    <string name="uninstall_blocked">الإزالة محظورة</string>
-    <string name="keyboard_description">يغيّر لوحة المفاتيح المستخدمة لرمز الاسترداد وتحدي الكلمات. التخطيط المبعثر يجعل كتابة رمز محفوظ جزئيًا من الذاكرة أصعب بكثير.</string>
+    <string name="keyboard_description">يغيّر لوحة المفاتيح المستخدمة لرمز الاسترداد. التخطيط المبعثر يجعل كتابة رمز محفوظ جزئيًا من الذاكرة أصعب بكثير.</string>
     <string name="commitment_settings_locked_title">الإعدادات مقفلة</string>
     <string name="commitment_settings_locked_body">التزامك ما زال ساريًا. لا يمكن تغيير الحماية من المحتوى الإباحي أو إضعافها أو إيقافها حتى ينتهي — رمز الاسترداد لا يتجاوز ذلك. لإنهائه مبكرًا، قدّم طلب إنهاء من تبويب الإعدادات وانتظر 7 أيام.</string>
+
+    <!-- Visual blocking edits -->
+    <string name="unlock_to_change">أدخل رمز الاسترداد لتغيير الإعدادات</string>
+    <string name="save_changes">حفظ</string>
+    <string name="settings_saved">تم حفظ الإعدادات</string>
+
 </resources>
